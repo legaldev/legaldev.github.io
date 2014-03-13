@@ -43,83 +43,94 @@ if (Input.GetMouseButton(0))
 
 鼠标左右移动控制相机左右旋转的代码就可以直接给出：
 
-	// 构造一个四元数，以人物的上方向(up)为旋转轴，这是在人物坐标系中的旋转
-    Quaternion rotation = Quaternion.AngleAxis(x, transform.parent.up);
-    // 这里做的就是坐标系的变换，把相机的世界坐标变换到人物坐标系下的坐标	
-    Vector3 offset = transform.position - transform.parent.position;
-    // 计算旋转并变换回世界坐标系中
-    transform.position = transform.parent.position + (rotation * offset);
-    // 调整相机的视角中心
-    transform.LookAt(transform.parent);	
+```csharp
+// 构造一个四元数，以人物的上方向(up)为旋转轴，这是在人物坐标系中的旋转
+Quaternion rotation = Quaternion.AngleAxis(x, transform.parent.up);
+// 这里做的就是坐标系的变换，把相机的世界坐标变换到人物坐标系下的坐标	
+Vector3 offset = transform.position - transform.parent.position;
+// 计算旋转并变换回世界坐标系中
+transform.position = transform.parent.position + (rotation * offset);
+// 调整相机的视角中心
+transform.LookAt(transform.parent);	
+```
 
 `Quaternion`是Unity中表示四元数的类型，加上之前鼠标左键的检测，就可以完成左键控制相机左右旋转。
 
 控制上下旋转比左右旋转麻烦一点，因为此时的旋转轴是会一直变化的(这里假设人物的up一直是Y轴的正方向)。注意的相机也是一直在旋转，并且视点中心一直对准人物，那么相机的右方向(right)就是我们想要围绕着旋转的轴了(把相机right想象成人物的right)，这样理解，那么上下旋转的代码也很简单了：
 
-    Quaternion rotation = Quaternion.AngleAxis(-y, transform.right);
-    Vector3 offset = transform.position - transform.parent.position;
-    transform.position = transform.parent.position + (rotation * offset);
-    transform.LookAt(transform.parent);
+```csharp
+Quaternion rotation = Quaternion.AngleAxis(-y, transform.right);
+Vector3 offset = transform.position - transform.parent.position;
+transform.position = transform.parent.position + (rotation * offset);
+transform.LookAt(transform.parent);
+```
 
 ###右键旋转###
 右键旋转做起来要比左键简单，因为此时人物也会左右旋转，于是我们可以理解为人物带动相机左右旋转，于是我们只需要旋转左右人物：
 
-    transform.parent.Rotate(0, x, 0);
+```csharp
+transform.parent.Rotate(0, x, 0);
+```
 
 上下旋转跟左键的代码一样。
 
 ###先左键，后右键###
 上面虽然可以分别左键旋转，右键旋转，但是一旦先用左键旋转，再用右键操作的时候，问题就会出现：人物的前方向和相机的前方向不同了！那么相机和人物的正方向就从此分离，实际操作起来很奇怪。那么我们在用右键旋转的时候就要先把人物调整为跟相机的正方向一致：
 
-    Vector3 oldPosition = transform.position;
-    transform.parent.forward = Vector3.Normalize(new Vector3(transform.forward.x, 0, 
-    	transform.forward.z));
-    transform.position = oldPosition;
-    transform.LookAt(transform.parent);
+```csharp
+Vector3 oldPosition = transform.position;
+transform.parent.forward = Vector3.Normalize(new Vector3(transform.forward.x, 0, 
+	transform.forward.z));
+transform.position = oldPosition;
+transform.LookAt(transform.parent);
+```
 
 ###完整代码###
-	if (Input.GetMouseButton(0) ^ Input.GetMouseButton(1))
-	{
-	    float x = Input.GetAxis("Mouse X") * rotateSpeed;
-	    float y = Input.GetAxis("Mouse Y") * rotateSpeed;
 
-	    if (Input.GetMouseButton(1) && x != 0F && y != 0F)
-	    {
-	        // set character forward to the camera forward
-	        Vector3 oldPosition = transform.position;
-	        transform.parent.forward = Vector3.Normalize(new Vector3(transform.forward.
-	        	x, 0, transform.forward.z));
-	        transform.position = oldPosition;
-	        transform.LookAt(transform.parent);
-	    }
+```csharp
+if (Input.GetMouseButton(0) ^ Input.GetMouseButton(1))
+{
+    float x = Input.GetAxis("Mouse X") * rotateSpeed;
+    float y = Input.GetAxis("Mouse Y") * rotateSpeed;
 
-	    if (x != 0F)
-	    {
-	        if (Input.GetMouseButton(0))    // mouse LB, character not rotate
-	        {
-	            Quaternion rotation = Quaternion.AngleAxis(x, transform.parent.up);
-	            Vector3 offset = transform.position - transform.parent.position;
-	            transform.position = transform.parent.position + (rotation * offset);
-	            transform.LookAt(transform.parent);
-	        }
-	        else
-	        {
-	            transform.parent.Rotate(0, x, 0);
-	        }
-	    }
+    if (Input.GetMouseButton(1) && x != 0F && y != 0F)
+    {
+        // set character forward to the camera forward
+        Vector3 oldPosition = transform.position;
+        transform.parent.forward = Vector3.Normalize(new Vector3(transform.forward.
+        	x, 0, transform.forward.z));
+        transform.position = oldPosition;
+        transform.LookAt(transform.parent);
+    }
 
-	    if (y != 0F)
-	    {
+    if (x != 0F)
+    {
+        if (Input.GetMouseButton(0))    // mouse LB, character not rotate
+        {
+            Quaternion rotation = Quaternion.AngleAxis(x, transform.parent.up);
+            Vector3 offset = transform.position - transform.parent.position;
+            transform.position = transform.parent.position + (rotation * offset);
+            transform.LookAt(transform.parent);
+        }
+        else
+        {
+            transform.parent.Rotate(0, x, 0);
+        }
+    }
 
-	        if ((Vector3.Dot(transform.forward, transform.parent.up) >= -0.9F || y > 0) 
-	        &&
-	            (Vector3.Dot(transform.forward, transform.parent.up) <= 0.9F || y < 0))
-	        {
-	            Quaternion rotation = Quaternion.AngleAxis(-y, transform.right);
-	            Vector3 offset = transform.position - transform.parent.position;
-	            transform.position = transform.parent.position + (rotation * offset);
-	            transform.LookAt(transform.parent);
+    if (y != 0F)
+    {
 
-	        }
-	    }
-	}
+        if ((Vector3.Dot(transform.forward, transform.parent.up) >= -0.9F || y > 0) 
+        &&
+            (Vector3.Dot(transform.forward, transform.parent.up) <= 0.9F || y < 0))
+        {
+            Quaternion rotation = Quaternion.AngleAxis(-y, transform.right);
+            Vector3 offset = transform.position - transform.parent.position;
+            transform.position = transform.parent.position + (rotation * offset);
+            transform.LookAt(transform.parent);
+
+        }
+    }
+}
+```
