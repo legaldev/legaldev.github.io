@@ -85,6 +85,14 @@ transform.LookAt(transform.parent);
 
 - - - 
 
+###欧拉角万向锁###
+至此，相机的旋转差不多就完成，不过还有一个问题要注意：欧拉角万向锁。原理这里就不细讲，有兴趣的朋友可以自行搜索，针对这里相机的情况，就是当相机上下旋转到跟人物的上方向重合的时候，相机的视角会发生突变。这是因为相机到达人物的头顶或者脚底，相机的上方向会发生突变(因为相机的上方向的Y值一直都要大于零)，所以我们需要限制相机的上下旋转范围，防止发生万向锁。操作很简单，就是限制相机的前方向与人物的上方向的夹角的范围：
+
+```c#
+if ((Vector3.Dot(transform.forward, transform.parent.up) >= -0.9F || y > 0) &&
+    (Vector3.Dot(transform.forward, transform.parent.up) <= 0.9F || y < 0))
+```
+
 ###完整代码###
 
 ```csharp
@@ -120,9 +128,8 @@ if (Input.GetMouseButton(0) ^ Input.GetMouseButton(1))
 
     if (y != 0F)
     {
-
-        if ((Vector3.Dot(transform.forward, transform.parent.up) >= -0.9F || y > 0) 
-        &&
+    	// 防止万向锁
+        if ((Vector3.Dot(transform.forward, transform.parent.up) >= -0.9F || y > 0) &&
             (Vector3.Dot(transform.forward, transform.parent.up) <= 0.9F || y < 0))
         {
             Quaternion rotation = Quaternion.AngleAxis(-y, transform.right);
