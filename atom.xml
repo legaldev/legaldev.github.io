@@ -5,10 +5,10 @@ layout: nil
 <feed xmlns="http://www.w3.org/2005/Atom">
  
  <title>LegalDev</title>
- <link href="http://legal.github.io/atom.xml" rel="self"/>
- <link href="http://legal.github.io/"/>
+ <link href="http://legaldev.github.io/atom.xml" rel="self"/>
+ <link href="http://legaldev.github.io/"/>
  <updated>{{ site.time | date_to_xmlschema }}</updated>
- <id>http://legal.github.io/</id>
+ <id>http://legaldev.github.io/</id>
  <author>
    <name>Legal Dev</name>
    <email>legaldev0@gmail.com</email>
@@ -17,7 +17,7 @@ layout: nil
  {% for post in site.posts %}
  <entry>
    <title>{{ post.title }}</title>
-   <link href="http://legal.github.io{{ post.url }}"/>
+   <link href="http://legaldev.github.io{{ post.url }}"/>
    <updated>{{ post.date | date_to_xmlschema }}</updated>
    <id>http://legal.dev.com{{ post.id }}</id>
    <content type="html">{{ post.content | xml_escape }}</content>
