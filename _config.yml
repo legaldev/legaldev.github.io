@@ -7,7 +7,7 @@ destination: ./_site
 plugins:     ./_plugins
 future:      true
 lsi:         false
-markdown:    maruku
+markdown:    redcarpet
 
 permalink:   /:title
 
