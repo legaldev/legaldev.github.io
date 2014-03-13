@@ -2,7 +2,7 @@
 layout: post
 title: Hello World
 category: test
-tag: relax
+tags: [others]
 ---
 
 {{ page.title }}

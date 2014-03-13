@@ -2,7 +2,7 @@
 layout: post
 title: Unity第三人称相机构建0
 category: unity
-tag: dev
+tags: [dev]
 ---
 
 {{page.title}}
@@ -27,15 +27,13 @@ tag: dev
 
 在Unity中获取鼠标左键状态使用语句：`Input.GetMouseButton(0)`（注：后面涉及到代码的地方，都是使用C#），明显，右键就是`Input.GetMouseButton(1)`。获取鼠标光标的移动位置（可以理解为帧之间光标在X-Y上的偏移量）信息是：`Input.GetAxis("Mouse X"); Input.GetAxis("Mouse Y")`。那么我们可以先来获取鼠标左键按下后光标的移动信息：
 
-
-```csharp
+{% highlight csharp %}
 if (Input.GetMouseButton(0))
 {
     float x = Input.GetAxis("Mouse X");
     float y = Input.GetAxis("Mouse Y");
 }
-```
-
+{% endhighlight csharp %}
  
 代码很简单，那下面就是关键的地方：如何控制相机来旋转。要理解旋转，这里需要一些关于四元数的知识（网上资料很多，这里就不列举了），四元数重要的一点是它可以很简单地构造旋转，特别是围绕某个向量的旋转，理解四元数后，实现相机围绕人物的旋转就不难了。
 
@@ -84,6 +82,8 @@ transform.parent.forward = Vector3.Normalize(new Vector3(transform.forward.x, 0,
 transform.position = oldPosition;
 transform.LookAt(transform.parent);
 ```
+
+- - - 
 
 ###完整代码###
 
