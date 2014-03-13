@@ -28,7 +28,7 @@ tag: dev
 在Unity中获取鼠标左键状态使用语句：`Input.GetMouseButton(0)`（注：后面涉及到代码的地方，都是使用C#），明显，右键就是`Input.GetMouseButton(1)`。获取鼠标光标的移动位置（可以理解为帧之间光标在X-Y上的偏移量）信息是：`Input.GetAxis("Mouse X"); Input.GetAxis("Mouse Y")`。那么我们可以先来获取鼠标左键按下后光标的移动信息：
 
 
-```cs
+```C#
 if (Input.GetMouseButton(0))
 {
     float x = Input.GetAxis("Mouse X");
