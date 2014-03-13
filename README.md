@@ -1,4 +1,4 @@
-lugliang.github.com
+legal.github.io
 ===================
 
 My bolg
