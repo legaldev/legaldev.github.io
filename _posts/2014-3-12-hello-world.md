@@ -1,6 +1,8 @@
 ---
 layout: post
-title: one
+title: Hello World
+category: test
+tag: relax
 ---
 
 {{ page.title }}
