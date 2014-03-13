@@ -5,11 +5,10 @@ pygments:    true
 source:      .
 destination: ./_site
 plugins:     ./_plugins
-excerpt_separator: ""
 future:      true
 lsi:         false
-markdown:    redcarpet
-extensions:  [fenced_code_blocks]
+markdown:    maruku
+
 permalink:   /:title
 
 maruku:
