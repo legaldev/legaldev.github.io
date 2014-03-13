@@ -41,7 +41,7 @@ if (Input.GetMouseButton(0))
 
 鼠标左右移动控制相机左右旋转的代码就可以直接给出：
 
-```csharp
+{% highlight csharp %}
 // 构造一个四元数，以人物的上方向(up)为旋转轴，这是在人物坐标系中的旋转
 Quaternion rotation = Quaternion.AngleAxis(x, transform.parent.up);
 // 这里做的就是坐标系的变换，把相机的世界坐标变换到人物坐标系下的坐标	
@@ -50,7 +50,7 @@ Vector3 offset = transform.position - transform.parent.position;
 transform.position = transform.parent.position + (rotation * offset);
 // 调整相机的视角中心
 transform.LookAt(transform.parent);	
-```
+{% endhighlight csharp %}
 
 `Quaternion`是Unity中表示四元数的类型，加上之前鼠标左键的检测，就可以完成左键控制相机左右旋转。
 
