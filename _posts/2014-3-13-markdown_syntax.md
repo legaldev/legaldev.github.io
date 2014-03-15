@@ -3,11 +3,9 @@ layout: post
 title: Markdown语法示例(转载)
 categories: language
 tags: [markdown]
+description: "Markdown是一个将文本转化为HTML的工具。简单来说，Markdown是一个兼顾可读性与易用性的轻量级标记体系。Markdown并不追求大而全，它只关心HTML里最常用的几个标记，对于一些不常用的标记它允许直接将HTML标记插入文本。"
 ---
-
-{{page.title}}
-==============
-
+{% include JB/setup %}
 以下内容转自：[Markdown语法示例](http://equation85.github.io/blog/markdown-examples/)
 
 - - - 
@@ -176,14 +174,16 @@ Markdown支持两种风格的链接：*Inline*和*Reference*。
 *注：Markdown不能设置图片大小，如果必须设置则应使用HTML标记&lt;img&gt;。*   
 #### 语法：
 
-	Inline示例：![替代文本](/assets/images/jian.jpg "可选的title")
+	Inline示例：![替代文本]({{ MY_ASSET_PATH }}/images/jian.jpg "markdown")
 	Reference示例：![替代文本][pic]
-	[pic]: /assets/images/jian.jpg "可选的title"
-	HTML示例：<img src="/assets/images/jian.jpg" alt="替代文本" title="标题文本" width="200" />
+	[pic]: /assets/images/jian.jpg "reference"
+	HTML示例：<img src="{{ MY_ASSET_PATH }}/images/jian.jpg" alt="替代文本" title="html" width="200" />
 
 #### 效果：
 
-<img src="/assets/images/jian.jpg" alt="替代文本" title="标题文本" width="200" />
+![替代文本]({{ MY_ASSET_PATH }}/images/jian.jpg "markdown")
+
+<img src="{{ MY_ASSET_PATH }}/images/jian.jpg" alt="替代文本" title="html" width="200" />
 
 - - - 
 

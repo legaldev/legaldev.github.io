@@ -1,12 +1,11 @@
 ---
 layout: post
-title: Unity第三人称相机构建1
+title: Unity第三人称相机构建(下)
 categories: unity
 tags: [dev]
+description: "我想在Unity中创建一个第三人称相机，相机的行为参考《魔兽世界》的第三人称相机。这里来解决相机的刚体问题。"
 ---
 
-{{page.title}}
-==============
 
 上一集讲完了[相机的旋转]({% post_url 2014-3-13-unity-3rdcamera-create0 %})，那么现在我们要解决的问题是相机的刚性，要怎么做呢？
 
@@ -48,7 +47,9 @@ if (zoom != 0F)
 --------------------
 这需要检测相机跟刚体的接触，有一个函数可以实现这个功能：
 
-`static bool Raycast(Ray ray, RaycastHit hitInfo, float distance = Mathf.Infinity, int layerMask = DefaultRaycastLayers);`
+```c#
+static bool Raycast(Ray ray, RaycastHit hitInfo, float distance = Mathf.Infinity, int layerMask = DefaultRaycastLayers);
+```
 
 具体用法参考Unity的[Reference](http://docs.unity3d.com/Documentation/ScriptReference/Physics.Raycast.html)，我们可以这样实现碰撞的检测：
 
@@ -165,6 +166,7 @@ else
 这样相机的行为我们都实现了。
 
 完整代码：
+
 ```c#
 using UnityEngine;
 using System;
@@ -195,7 +197,8 @@ public class MyThirdPersonCamera : MonoBehaviour {
 
     void Start () 
     {
-        transform.position = playerTransform.position - playerTransform.forward * curDistance;
+        transform.position = playerTransform.position - playerTransform.forward 
+            * curDistance;
         transform.LookAt(playerTransform);
         
     }
@@ -203,7 +206,8 @@ public class MyThirdPersonCamera : MonoBehaviour {
     // Update is called once per frame
     void Update () 
     {
-        Vector3 cameraToPlayer = (playerTransform.position - transform.position).normalized;
+        Vector3 cameraToPlayer = 
+            (playerTransform.position - transform.position).normalized;
 
         Vector3 desireForward = transform.forward;
 
@@ -222,18 +226,21 @@ public class MyThirdPersonCamera : MonoBehaviour {
         // if RB on, change player orientation
         if (isRightDown)
         {
-            playerTransform.forward = Vector3.Normalize(new Vector3(cameraToPlayer.x, 0, cameraToPlayer.z));
+            playerTransform.forward = Vector3.Normalize(new Vector3(cameraToPlayer.
+                x, 0, cameraToPlayer.z));
         }
 
         // rotate camera by y-axis, if camera is not on ground or camera is going to leave ground
-        if ((!isHitGround) || (isHitGround && transform.forward.y <= cameraToPlayer.y && yAngle > 0))
+        if ((!isHitGround) 
+        || (isHitGround && transform.forward.y <= cameraToPlayer.y && yAngle > 0))
         {
-            cameraToPlayer = RotateY(cameraToPlayer, playerTransform.up, transform.right, yAngle);
+            cameraToPlayer = RotateY(cameraToPlayer, playerTransform.up, transform.
+                right, yAngle);
         }
 
         // detect collision of camera to rigid body, get the distance camera should be
-        float newDistance = DealWithCollision(playerTransform.position, -cameraToPlayer, desiredDistance,
-            ref isHitGround, ref isHitObject);
+        float newDistance = DealWithCollision(playerTransform.position, 
+            -cameraToPlayer, desiredDistance,ref isHitGround, ref isHitObject);
 
         // check the distance
         if (newDistance <= curDistance)
@@ -243,7 +250,8 @@ public class MyThirdPersonCamera : MonoBehaviour {
         else
         {
             // now moving to farther position, use a speed to move it
-            curDistance = Math.Min(curDistance + Time.deltaTime * autoZoomOutSpeed, newDistance);
+            curDistance = Math.Min(curDistance + Time.deltaTime * autoZoomOutSpeed, 
+                newDistance);
         }
 
         // now calculate the position
@@ -257,7 +265,8 @@ public class MyThirdPersonCamera : MonoBehaviour {
         else
         {
             desireForward = RotateX(desireForward, playerTransform.up, xAngle);
-            desireForward = RotateY(desireForward, playerTransform.up, transform.right, yAngle);
+            desireForward = RotateY(desireForward, playerTransform.up, transform.
+                right, yAngle);
             transform.forward = desireForward;
         }
     }
