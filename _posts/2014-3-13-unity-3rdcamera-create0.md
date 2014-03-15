@@ -4,6 +4,7 @@ title: Unity第三人称相机构建(上)
 categories: unity
 tags: [dev]
 description: "我想在Unity中创建一个第三人称相机，相机的行为参考《魔兽世界》的第三人称相机。这里先来解决相机的旋转问题。"
+figure: 
 ---
 
 我想在Unity中创建一个第三人称相机，相机的行为参考《魔兽世界》的第三人称相机，具体的需求是：
@@ -70,6 +71,7 @@ Vector3 MyRotate(Vector3 oldPosition, float angle, Vector3 axis, Vector3 axisPos
 `Quaternion`是Unity中表示四元数的类型，加上之前鼠标左键的检测，就可以完成左键控制相机左右旋转。
 
 鼠标左右移动控制相机左右旋转的代码就可以直接给出：
+
 ```c#
 newForward = MyRotate(newForward, x, up, Vector3.zero);
 ```
@@ -136,7 +138,8 @@ Vector3 RotateIt(Vector3 oldForward, Vector3 up, Vector3 right, Transform player
             // mouse RB, character rotate together
             if (Input.GetMouseButton(1))
             {
-                player.forward = Vector3.Normalize(new Vector3(oldForward.x, 0, oldForward.z));
+                player.forward = Vector3.Normalize(new Vector3(oldForward.x, 0, 
+                    oldForward.z));
             }
         }
 

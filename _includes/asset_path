@@ -1,0 +1,5 @@
+{% include JB/setup %}
+
+{% capture namespace %}{{ page.path | split:"/" | last | split:"." | first }}{% endcapture %}
+
+{% capture PAGE_ASSET_PATH %}{{ MY_ASSET_PATH}}/post_assets/{{namespace }}{% endcapture %}
