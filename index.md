@@ -1,10 +1,9 @@
 ---
 layout: default
-title: Home
+title: Legal Dev
 tagline: Try Work Smart
 ---
 {% include JB/setup %}
-
 
 {% for post in site.posts %}
   <hr>
