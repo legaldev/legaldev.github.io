@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Jekyll Lesson
+title: Jekyll Lesson (from jekyll-bootstrap)
 category : lessons
 tags : [intro, beginner, jekyll, tutorial]
 ---

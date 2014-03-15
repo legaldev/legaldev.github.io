@@ -14,9 +14,9 @@ author :
   name : legaldev
   email : legaldev0@gmail.com
   github : legaldev
-  feedburner : legaldev
-  feedname : legaldev
-  feedurl : http://feedpress.me/legaldev
+  feedburner : legaldev1
+  feedname : legaldev1
+  feedurl : http://feed.feedburner.com/legaldev1
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt 
