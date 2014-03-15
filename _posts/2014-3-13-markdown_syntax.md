@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Markdown语法示例(转载)
-category: language
+categories: language
 tags: [markdown]
 ---
 
