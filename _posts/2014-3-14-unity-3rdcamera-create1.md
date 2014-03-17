@@ -329,8 +329,8 @@ public class MyThirdPersonCamera : MonoBehaviour {
         Vector3 newVector = vectorP2C;
         if (angle != 0F)
         {
-            if ((Vector3.Dot(vectorP2C, up) >= -0.95F || angle > 0)
-                && (Vector3.Dot(vectorP2C, up) <= 0.95F || angle < 0))
+            if ((Vector3.Dot(vectorP2C, up) >= -0.99F || angle < 0)
+                && (Vector3.Dot(vectorP2C, up) <= 0.99F || angle > 0))
             {
                 newVector = RotateAroundAxis(newVector, angle, right, Vector3.zero);
             }
