@@ -8,5 +8,3 @@ group: navigation
 Email: <legaldev0@gmail.com>
 
 [github.com/legaldev/](http://github.com/legaldev/)
-
-Cofounder of [github](http://github.com)
