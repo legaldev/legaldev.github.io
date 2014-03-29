@@ -153,7 +153,7 @@ inline half CheckSame (half2 centerNormal, half2 sampleNormal, float centerDepth
 }
 ```
 
-完整的 Shader 为：
+完整的 Shader 如下：
 
 ```glsl
 Shader "Custom/DepthColorEdge" {
