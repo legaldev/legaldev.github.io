@@ -11,7 +11,7 @@ tagline: Try Work Smart
   {{post.description}}
   {% if post.figures %}
     {% for figure in post.figures %}
-<a href="{{post.url}}"><img src="{{figure}}"/></a>
+<a href="{{post.url}}"><img src="{{figure}}" width="200"/></a>
     {% endfor %}
   {% endif %}
   {% if post.figure %}

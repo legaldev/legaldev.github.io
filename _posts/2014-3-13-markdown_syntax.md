@@ -5,7 +5,6 @@ categories: language
 tags: [markdown]
 description: "Markdown是一个将文本转化为HTML的工具。简单来说，Markdown是一个兼顾可读性与易用性的轻量级标记体系。Markdown并不追求大而全，它只关心HTML里最常用的几个标记，对于一些不常用的标记它允许直接将HTML标记插入文本。"
 ---
-
 {% include asset_path %}
 
 以下内容转自：[Markdown语法示例](http://equation85.github.io/blog/markdown-examples/)
@@ -185,7 +184,7 @@ Markdown支持两种风格的链接：*Inline*和*Reference*。
 
 ![替代文本]({{ PAGE_ASSET_PATH }}/jian.jpg "markdown")
 
-{% include img name='jian.jpg' %}
+{% include img name='jian.jpg' width='200'%}
 
 <img src="{{ MY_ASSET_PATH }}/post_assets/2014-3-13-markdown_syntax/jian.jpg" alt="替代文本" title="html" width="200" />
 
