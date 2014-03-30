@@ -41,13 +41,13 @@ d. 添加上把真实场景的颜色
 
 ##画遮挡物体
 
-在实际的操作中，我先用`RenderWithShader`来把会发生遮挡的物体画成黑色，其他地方为白色，因为这需要对每个面片进行渲染，因此对于复杂的场景，会带来一定的性能消耗。场景中的物体有不透明和透明的，我们希望不透明的物体产生完全的光线遮挡，而透明的物体应该产生部分的遮挡，那么我们就需要针对不同`RenderType`的物体写不同的Shader，`RenderType`是`SubShader`的`Tag`，不清楚的话可以看[这里](http://docs.unity3d.com/Documentation/Components/SL-SubshaderTags.html)，写好之后调用：
+在实际的操作中，我先用`RenderWithShader`来把会发生遮挡的物体画成黑色，其他地方为白色，因为这需要对每个面片进行渲染，因此对于复杂的场景，会带来一定的性能消耗。场景中的物体有不透明和透明的，我们希望不透明的物体产生完全的光线遮挡，而透明的物体应该产生部分的遮挡，那么我们就需要针对不同RenderType的物体写不同的Shader，RenderType是SubShader的Tag，不清楚的话可以看[这里](http://docs.unity3d.com/Documentation/Components/SL-SubshaderTags.html)，写好之后调用：
 
 ```c#
 camera.RenderWithShader(objectOcclusionShader, "RenderType");
 
 ```
-`RenderWithShader`的第二个参数就是要求根据`RenderType`来替换`Shader`，简单来说，同一个物体的替换的`Shader`的`RenderType`要跟替换前一致，这样我们就可以为不同的`RenderType`的物体使用不同的`Shader`：
+`RenderWithShader`的第二个参数就是要求根据RenderType来替换Shader，简单来说，同一个物体的替换的Shader的RenderType要跟替换前一致，这样我们就可以为不同的RenderType的物体使用不同的Shader：
 
 ```glsl
 Shader "Custom/ObjectOcclusion" 
@@ -137,7 +137,7 @@ Shader "Custom/ObjectOcclusion"
 
 ```
 
-注意不透明和透明物体的`Shader`间的差别：不透明的物体直接画成黑色；不透明物体需要执行`blending`，获取物体纹理上的`alpha`通道，并基于这个`alpha`进行`blending`。上面代码只是列举了`Opaque`和`Transparent`，另外还有`TreeOpaque`(`Shader`跟`Opaque`一样，只是改变`RenderType`)，`TreeTransparentCutout`(同`Transparent`)等。由于指定了`RenderType`，所以为了全面，需要尽可能穷尽场景中的会发生遮挡的物体，我这里就只有前面提到的四种。结果大致如下：
+注意不透明和透明物体的Shader间的差别：不透明的物体直接画成黑色；不透明物体需要执行blending，获取物体纹理上的alpha通道，并基于这个alpha进行blending。上面代码只是列举了Opaque和Transparent，另外还有TreeOpaque (Shader跟Opaque一样，只是改变RenderType) ，TreeTransparentCutout (同Transparent) 等。由于指定了RenderType，所以为了全面，需要尽可能穷尽场景中的会发生遮挡的物体，我这里就只有前面提到的四种。结果大致如下：
 
 {% include img name='objectocclusion.png'%}
 
@@ -195,7 +195,7 @@ Shader "Custom/LightRadiate"
 }
 ```
 
-这个`Shader`需要输入光源在屏幕上的位置(可以用`camera.WorldToViewportPoint`来计算，得到的是uv坐标)，然后根据指定的半径画一个亮度往外衰减的圆，并把结果跟前面得到的物体遮挡图像(放在`_MainTex`里)结合，结果大致为：
+这个Shader需要输入光源在屏幕上的位置(可以用`camera.WorldToViewportPoint`来计算，得到的是uv坐标)，然后根据指定的半径画一个亮度往外衰减的圆，并把结果跟前面得到的物体遮挡图像(放在`_MainTex`里)结合，结果大致为：
 {% include img name='light.png'%}
 
 ##Light Scattering处理，并结合真实颜色
