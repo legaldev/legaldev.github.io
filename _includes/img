@@ -8,5 +8,5 @@
 	{% assign WIDTH = 100\% %}
 {% endif %}
 
-<img src="{{ MY_ASSET_PATH }}/post_assets/{{ namespace }}/{{ include.name }}" {% if include.width %} width = "{{include.width}}"{% endif %} {% if include.alt %} alt = "{{include.alt}}"{% endif %} {% if include.title %} title = "{{include.title}}"{% endif %}/>
+<img src="{{ MY_ASSET_PATH }}/post_assets/{{ namespace }}/{{ include.name }}" {% if include.width %} width = "{{include.width}}"{% endif %} {% if include.alt %} alt = "{{include.alt}}" {% else %} alt = "{{include.name}}" {% endif %} {% if include.title %} title = "{{include.title}}" {% else %} title = "{{include.name}}" {% endif %}/>
 

@@ -45,7 +45,7 @@ sampler2D _CameraDepthNormalsTexture;
 
 ##RenderWithShader 来获取深度图
 
-这种方法其实就是用 Unity Reference 里面的一个例子：[Rendering with Replaced Shaders](http://docs.unity3d.com/Documentation/Components/SL-ShaderReplacement.html)。
+这种方法其实就是用Unity Reference里面的一个例子：[Rendering with Replaced Shaders](http://docs.unity3d.com/Documentation/Components/SL-ShaderReplacement.html)。需要理解的是，`RenderWithShader`会把场景中的相应的Mesh画一遍。
 
 创建一个 Shader :
 
@@ -114,13 +114,15 @@ void OnRenderImage(RenderTexture src, RenderTexture dst);
 static void Blit(Texture source, RenderTexture dest, Material mat, int pass = -1);
 ```
 
-这个函数的 src 是相机渲染的结果，dst 是处理后传回给相机的结果，因此这个函数通常是用来在相机渲染完成后做图片的一些效果，例如我们这里的对深度做颜色映射，还有边缘检测。做法就是在 `OnRenderImage` 中调用 `Graphics.Blit`，传入特定的 `Material`：
+这个函数的 src 是相机渲染的结果，dst 是处理后传回给相机的结果，因此这个函数通常是用来在相机渲染完成后做图片的一些效果，例如我们这里的对深度做颜色映射，还有边缘检测。做法就是在`OnRenderImage`中调用`Graphics.Blit`，传入特定的`Material`：
 
 ```c#
 depthEdgeMaterial.SetTexture("_DepthTex", src);
 Graphics.Blit(src, dst, depthEdgeMaterial);
 return;
 ```
+
+需要注意的是，`Graphics.Blit`实际上做了这样一件事情：在相机前面画一个跟屏幕大小一样的平面，把`src`作为这个平面的`_MainTex`传进`Shader`中，然后把结果放到`dst`里面，而不是把实际场景中的Mesh重新画一遍。
 
 对颜色映射其实就是把深度 [0, 1] 看成图片的 uv，因为我想距离相机近的为红色，所以我对深度取了反：
 
@@ -280,6 +282,7 @@ Shader "Custom/ColorMixDepth" {
 	} 
 	FallBack "Diffuse"
 }
+```
 
 ```c#
 void OnRenderImage(RenderTexture src, RenderTexture dst)
