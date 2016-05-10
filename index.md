@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Legal Dev
+title: Disenone
 tagline: Try Work Smart
 ---
 {% include JB/setup %}
