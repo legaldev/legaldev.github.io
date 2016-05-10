@@ -8,15 +8,15 @@ pygments: true
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
-title : Disenone
+title : Legal Dev
 tagline: Try Work Smart
 author :
-  name : disenone
-  email : disenonec@gmail.com
-  github : disenone
-  feedburner : disenone
-  feedname : disenone
-  feedurl : http://feeds.feedburner.com/feedburner/disenone
+  name : legaldev
+  email : legaldev0@gmail.com
+  github : legaldev
+  feedburner : legaldev1
+  feedname : legaldev1
+  feedurl : http://feed.feedburner.com/legaldev1
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt 
@@ -26,7 +26,7 @@ author :
 # Else if you are pushing to username.github.io, replace with your username.
 # Finally if you are pushing to a GitHub project page, include the project name at the end.
 #
-production_url : http://disenone.github.io
+production_url : http://legaldev.github.io
 
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
 #
