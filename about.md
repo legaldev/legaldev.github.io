@@ -5,6 +5,6 @@ header: Abouts
 group: navigation
 ---
 
-Email: <legaldev0@gmail.com>
+Email: <disenonec@gmail.com>
 
-[github.com/legaldev/](http://github.com/legaldev/)
+[github.com/disenone/](http://github.com/disenone/)
