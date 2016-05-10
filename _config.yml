@@ -84,7 +84,7 @@ JB :
   comments :
     provider : disqus
     disqus :
-      short_name : disenone
+      short_name : legaldev
     livefyre :
       site_id : 123
     intensedebate :
