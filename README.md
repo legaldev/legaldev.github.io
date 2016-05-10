@@ -1,3 +1,3 @@
-# [My blog](http://disenone.github.io)
+##说明
 
-Power by [Jekyll-Bootstrap](http://jekyllbootstrap.com)
+此博客 fork 自 [cnfeat](https://github.com/cnfeat/blog.io/tree/master)，感谢。

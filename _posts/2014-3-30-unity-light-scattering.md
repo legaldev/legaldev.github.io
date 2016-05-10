@@ -10,7 +10,7 @@ figures: [assets/post_assets/2014-3-30-unity-light-scattering/effect.gif]
 
 {% include asset_path %}
 
-##原理
+## 原理
 Volumetric Light Scattering 的原理可以参考《GPU Gems 3》[第13章](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch13.html)，书上有效果图：
 
 {% include img name='goodeffect.png'%}
@@ -39,7 +39,7 @@ d. 添加上把真实场景的颜色
 
 那么下面我们就来一步一步地实现。
 
-##画遮挡物体
+## 画遮挡物体
 
 在实际的操作中，我先用`RenderWithShader`来把会发生遮挡的物体画成黑色，其他地方为白色，因为这需要对每个面片进行渲染，因此对于复杂的场景，会带来一定的性能消耗。场景中的物体有不透明和透明的，我们希望不透明的物体产生完全的光线遮挡，而透明的物体应该产生部分的遮挡，那么我们就需要针对不同RenderType的物体写不同的Shader，RenderType是SubShader的Tag，不清楚的话可以看[这里](http://docs.unity3d.com/Documentation/Components/SL-SubshaderTags.html)，写好之后调用：
 
@@ -141,7 +141,7 @@ Shader "Custom/ObjectOcclusion"
 
 {% include img name='objectocclusion.png'%}
 
-##结合物体遮挡画光源辐射
+## 结合物体遮挡画光源辐射
 
 画光源的辐射不难，需要注意的是需要根据屏幕的大小做一些处理，使得光源的辐射状是圆形的：
 
@@ -198,7 +198,7 @@ Shader "Custom/LightRadiate"
 这个Shader需要输入光源在屏幕上的位置(可以用`camera.WorldToViewportPoint`来计算，得到的是uv坐标)，然后根据指定的半径画一个亮度往外衰减的圆，并把结果跟前面得到的物体遮挡图像(放在`_MainTex`里)结合，结果大致为：
 {% include img name='light.png'%}
 
-##Light Scattering处理，并结合真实颜色
+## Light Scattering处理，并结合真实颜色
 
 这里就要用到书上提供的Pixel Shader，我的版本：
 
@@ -287,8 +287,8 @@ Shader "Custom/LightScattering"
 
 大体上跟书上的一致，只是我的参数需要在程序中传进来，并且结合了真实的颜色图和Light Scattering图，结果：
 
-{%include img name='effect.gif'%}
+{%include img name='effect.gif' %}
 
-##完整代码
+## 完整代码
 
 代码在[这里]({{PAGE_ASSET_PATH}}/{{PAGE_NAME}}.zip)，把`cs`脚本添加到相机上。

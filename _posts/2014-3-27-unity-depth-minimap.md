@@ -12,7 +12,7 @@ figures: [assets/post_assets/2014-3-27-unity-depth-minimap/topview.png]
 
 刚接触Unity没多久，对Unity的ShaderLab一直很感兴趣，感觉它可以快速地实现各种各样的显示效果，很有意思。嘛，作为一个门都还没入的人，我就来搞一搞深度图和边缘检测吧。
 
-#小地图设置
+# 小地图设置
 因为我只是做了一个小雏形，所以我不打算详细地讲如何去在场景上画小地图，大致上说我做了以下一些事情：
 
 1. 获取场景的 bounding box，这个在设置相机的参数和位置时有用
@@ -43,7 +43,7 @@ sampler2D _CameraDepthNormalsTexture;
 
 这不是我这里讨论的重点，我想说的是，本来我的相机设置为正交投影，深度应该是线性的，但我测试出来却不是线性。然后我用上面链接介绍的方法来计算真实世界的深度，也一直都不正确，以至于一直计算不出真实的线性深度，不知道是Unity的Z_Buffer的问题还是什么，那位朋友知道的请教教我。当然，如果不需要真实的深度值，单单是比较深度的大小之类的，用上面的方法就足够了，而且很简单。但是对于我这里来说，我想要把真实深度映射为颜色值，需要获得真实的线性的深度值（虽然也是[0, 1]），我只好用另外一种用 RenderWithShader 方法了。
 
-##RenderWithShader 来获取深度图
+## RenderWithShader 来获取深度图
 
 这种方法其实就是用Unity Reference里面的一个例子：[Rendering with Replaced Shaders](http://docs.unity3d.com/Documentation/Components/SL-ShaderReplacement.html)。需要理解的是，`RenderWithShader`会把场景中的相应的Mesh画一遍。
 
@@ -94,7 +94,7 @@ camera.RenderWithShader(depthShader, "");
 
 渲染的结果就会保存在 `depthTexture`里面，很简单吧。
 
-##把深度映射成颜色
+## 把深度映射成颜色
 要完成这个工作，首先需要一张颜色图，这张图可以用 Matlab 很简单地生成，例如我用的是 Matlab 里面的 jet 图：
 
 {%include img name='jet.png' width='200' alt='jet color map' title='jet'%}
@@ -130,7 +130,7 @@ return;
 half4 color = tex2D(_ColorMap, float2(saturate(1-depth), 0.5));
 ```
 
-#边缘检测
+# 边缘检测
 边缘检测需要用到了相机自己的 `_CameraDepthNormalsTexture`，主要是用 Normal 的值，深度还是用之前计算出来的。在 `_CameraDepthNormalsTexture` 的每个像素 (x, y, z, w) 中，(x, y) 是法向，(z, w)是深度，法向是用了一种方法来存放的，有兴趣可以自己搜索。
 
 代码是参考了 Unity 自带的 Image Effect 里面的边缘检测，需要做的事情就是，比较当前像素的法向深度和邻近像素的差别，足够大我们就认为存在边缘：
@@ -247,7 +247,7 @@ Properties
 结果类似于这个：
 {%include img name='topview.png' width='200' alt='depth color' title='depth color'%}
 
-#混合真实世界图像
+# 混合真实世界图像
 单单是深度的颜色图可能有点无趣，那么我们可以混合上真实场景的颜色图，只需要再建一个 Shader，传入前面的图像和相机的真实图像，在 `OnRenderImage` 中进行混合：
 
 ```glsl
@@ -309,5 +309,5 @@ void OnRenderImage(RenderTexture src, RenderTexture dst)
 ```
 上面的代码就是完成这个工作，需要理解的是，我们在调用 `RenderWithShader` 的时候，`OnRenderImage` 也会被调用，也就是这个函数被调用了两次，而两次调用需要完成的功能是不同的，所以我这里用一个变量来指示当前的渲染状态是做深度图还是混合。
 
-#完整的代码
+# 完整的代码
 代码文件有点多，就放到这里了[depth-minimap]({{PAGE_ASSET_PATH}}/2014-3-27-unity-depth-minimap.zip)。

@@ -1,12 +1,9 @@
-{% include JB/setup %}
+{% include setup %}
 
 {% capture namespace %}{{ page.path | split:"/" | last | split:"." | first }}{% endcapture %}
 
-{% if include.width %}
-	{% assign WIDTH = include.width %}
-{% else %}
-	{% assign WIDTH = 100\% %}
-{% endif %}
+{% if include.center %} <center> {% endif %}
 
-<img src="{{ MY_ASSET_PATH }}/post_assets/{{ namespace }}/{{ include.name }}" {% if include.width %} width = "{{include.width}}"{% endif %} {% if include.alt %} alt = "{{include.alt}}" {% else %} alt = "{{include.name}}" {% endif %} {% if include.title %} title = "{{include.title}}" {% else %} title = "{{include.name}}" {% endif %}/>
+<img src="{{ MY_ASSET_PATH }}/post_assets/{{ namespace }}/{{ include.name }}" {% if include.width %} width = "{{include.width}}"{% endif %} {% if include.alt %} alt = "{{include.alt}}" {% else %} alt = "{{include.name}}" {% endif %} {% if include.title %} title = "{{include.title}}" {% else %} title = "{{include.name}}" {% endif %} {% if include.width %} align = "{{include.align}}"{% endif %} />
 
+{% if include.center %} </center> {% endif %}

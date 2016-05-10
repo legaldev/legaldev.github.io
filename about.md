@@ -1,8 +1,8 @@
 ---
 layout: page
-title: Abouts
-header: Abouts
-group: navigation
+title: "About"
+description: "Try Working Smart"
+header-img: "img/green.jpg"
 ---
 
 Email: <disenone@gmail.com>

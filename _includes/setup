@@ -1,0 +1,1 @@
+{% capture MY_ASSET_PATH %}{{ BASE_PATH }}/assets{% endcapture %}
