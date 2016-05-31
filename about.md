@@ -1,7 +1,7 @@
 ---
 layout: page
 title: "About"
-description: "Try Working Smart"
+description: "work smarter"
 header-img: "img/green.jpg"
 ---
 
