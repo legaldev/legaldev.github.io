@@ -5,6 +5,9 @@ tagline: "cn"
 description: "work smarter"  
 baseurl: ""
 url: "http://disenone.github.io"  
+feedburner : disenone
+feedname : disenone
+feedurl : http://feeds.feedburner.com/Disenone
 
 # About/contact
 owner: 
