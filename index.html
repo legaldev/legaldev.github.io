@@ -14,12 +14,16 @@ description: "work smarter"
             {{ post.subtitle }}
         </h3>
         {% endif %}
+
         <div class="post-content-preview">
             <!--{{ post.content | strip_html | truncate:150 }}-->
             {{post.description}}
         </div>
+
+        <!--{% assign figures = post.figures | split: ";" %}-->
         {% for figure in post.figures %}
-            <a href="{{post.url}}"><img src="{{figure}}" width="200"/></a>
+            <!--<a href="{{post.url}}">-->
+            <img src="{{figure}}" {% if post.nowidth %} {% else %} width="200" {% endif %} style="display: inline-block"/>  <!--</a>-->
         {% endfor %}
     </a>
     <p class="post-meta">Posted by {% if post.author %}{{ post.author }}{% else %}{{ site.title }}{% endif %} on {{ post.date | date: "%B %-d, %Y" }}</p>

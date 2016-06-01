@@ -4,6 +4,6 @@
 
 {% if include.center %} <center> {% endif %}
 
-<img src="{{ MY_ASSET_PATH }}/post_assets/{{ namespace }}/{{ include.name }}" {% if include.width %} width = "{{include.width}}"{% endif %} {% if include.alt %} alt = "{{include.alt}}" {% else %} alt = "{{include.name}}" {% endif %} {% if include.title %} title = "{{include.title}}" {% else %} title = "{{include.name}}" {% endif %} {% if include.width %} align = "{{include.align}}"{% endif %} />
+<img {% if include.src %} src="{{include.src}}" {% else %} src="{{ MY_ASSET_PATH }}/post_assets/{{ namespace }}/{{ include.name }}" {% endif %} {% if include.width %} width = "{{include.width}}"{% endif %} {% if include.alt %} alt = "{{include.alt}}" {% else %} alt = "{{include.name}}" {% endif %} {% if include.title %} title = "{{include.title}}" {% else %} title = "{{include.name}}" {% endif %} {% if include.width %} align = "{{include.align}}"{% endif %} {% if include.style %} style = "{{include.style}}" {% else %} {% endif %}/>
 
 {% if include.center %} </center> {% endif %}
