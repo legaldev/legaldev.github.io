@@ -131,6 +131,49 @@ Bash中可以使用echo来进行输出。
 	$ echo 'Something'
 	$ echo -e '\tSomething\n'
 
+也有更具体的定义代码语法
+{% raw %}
+
+```markdown
+{% highlight cpp linenos %}
+your code here
+{% endhighlight  %}
+```
+
+{% endraw %}
+
+例如
+
+
+{% highlight cpp linenos %}
+
+#ifdef _MSC_VER
+
+#include <stdlib.h>
+
+#if _MSC_VER >= 1900
+/* pyconfig.h uses this function in the _Py_BEGIN_SUPPRESS_IPH/_Py_END_SUPPRESS_IPH
+ * macros. It does not need to be defined when building using MSVC
+ * earlier than 14.0 (_MSC_VER == 1900).
+ */
+
+static void __cdecl _silent_invalid_parameter_handler(
+    wchar_t const* expression,
+    wchar_t const* function,
+    wchar_t const* file,
+    unsigned int line,
+	uintptr_t pReserved) 
+{}
+
+_invalid_parameter_handler _Py_silent_invalid_parameter_handler = _silent_invalid_parameter_handler;
+
+#endif
+
+#endif
+
+{% endhighlight  %}
+
+
 - - - 
 
 ## 强调
