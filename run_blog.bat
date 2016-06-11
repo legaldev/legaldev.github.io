@@ -3,4 +3,4 @@ echo * change to utf-8
 
 echo * change to blog directory
 
-jekyll server -w
+jekyll server -w --drafts
