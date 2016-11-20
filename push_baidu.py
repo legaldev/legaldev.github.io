@@ -8,10 +8,11 @@ def run():
     sitemap = urllib2.urlopen('http://disenone.github.io/sitemap.txt')
     sites = sitemap.read()
     sites = sites.split('\n')
-    sites = filter(lambda x: x, sites)
+    sites = [x for x in sites if x]
     sites = '\n'.join(sites)
 
-    return requests.post(url, data=sites).text
+    res = requests.post(url, data=sites)
+    return res.status_code, res.text
 
 if __name__ == '__main__':
     print run()
