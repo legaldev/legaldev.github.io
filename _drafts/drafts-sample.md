@@ -1,5 +1,6 @@
 ---
 layout: post
+title: an example of a draft
 category : lessons
 tagline: "Supporting tagline"
 tags : [intro, beginner, jekyll, tutorial]
