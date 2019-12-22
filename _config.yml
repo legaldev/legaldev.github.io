@@ -49,14 +49,6 @@ defaults:
       author: "Disenone"
       header-img: "img/green.jpg" # We don't want posts without a header image, that whould mean white on white
 
-# Comments 
-comments :
-  provider : duoshou
-  duoshuo :
-    short_name : disenone
-  disqus :
-      short_name : disenone
-
 # Analytics and webmaster tools stuff goes here
 google_analytics: 
 google_verify:
