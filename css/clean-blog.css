@@ -235,6 +235,23 @@ hr.small {
   line-height: 2;
   margin-top: 20px;
 }
+.post-container .pager li {
+    width: 48%;
+  }
+  .post-container .pager li.next {
+    float: right;
+  }
+  .post-container .pager li.previous {
+    float: left;
+  }
+  .post-container .pager li > a {
+    width: 100%;
+  }
+  .post-container .pager li > a > span {
+    color: #808080;
+    font-weight: normal;
+    letter-spacing: 0.5px;
+  }
 .navbar-custom {
   background: white;
   position: absolute;
