@@ -2,6 +2,7 @@
 layout: post
 title: Unity画深度图(Depth Map)和边缘检测(Edge Detection)
 categories: unity
+catalog: true
 tags: [dev]
 description: |
     发现Unity的RenderWithShader()和OnRenderImage()可以用来实现很多效果，趁着学习的机会，我决定用这两个函数实现场景深度图的生成和场景边缘检测，可用来作为游戏的一种小地图。

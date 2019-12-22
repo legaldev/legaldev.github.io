@@ -2,6 +2,7 @@
 layout: post
 title: Unity人物控制
 categories: unity
+catalog: true
 tags: [dev]
 description: |
     人物的动作控制是游戏里面很重要的一部分，操作性强的游戏能够很好的吸引玩家。这里我就尝试做一个简单的人物操作控制，人物能够完成基本的移动，包括行走，跳跃。
