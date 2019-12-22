@@ -66,5 +66,6 @@ bing_verify:
 # Links to include in footer navigation
 
 gems: [jekyll-paginate]
+plugins: [jekyll-paginate]
 
 permalink: /:year/:month/:day/:title 
