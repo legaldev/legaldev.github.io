@@ -31,6 +31,16 @@ zhihu_username:
 # document: http://jekyllrb.com/docs/configuration/#kramdown  
 markdown: kramdown
 highlighter: rouge
+kramdown:
+    input: GFM
+    syntax_highlighter_opts:
+        css_class: 'highlight'
+        span:
+          line_numbers: false
+        block:
+          line_numbers: true
+          start_line: 1
+
 permalink: pretty
 paginate: 20
 exclude: ["less","node_modules","Gruntfile.js","package.json","README.md"]
