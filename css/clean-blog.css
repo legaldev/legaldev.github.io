@@ -193,6 +193,9 @@ blockquote p {
 .table td {
   border: 1px solid #eee !important;
 }
+.table > tbody > tr > td > pre.lineno {
+    color: white;
+}
 hr.small {
   max-width: 100px;
   margin: 15px auto;
@@ -670,8 +673,4 @@ body {
 }
 .navbar-default .navbar-toggle:active {
   background-color: #ddd;
-}
-
-.lineno {
-    color: #ffff
 }
