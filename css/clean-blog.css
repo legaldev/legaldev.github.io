@@ -674,3 +674,7 @@ body {
 .navbar-default .navbar-toggle:active {
   background-color: #ddd;
 }
+.emoji {
+   display: inline; 
+   vertical-align: top;
+}
