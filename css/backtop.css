@@ -2,7 +2,8 @@
 #back-top {
   position: fixed;
   bottom: 30px;
-  margin-left: 1300px;
+  margin-left: 300px;
+  overflow: auto;
 }
 #back-top a {
   width: 54px;
