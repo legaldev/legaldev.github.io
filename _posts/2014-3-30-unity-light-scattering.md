@@ -12,6 +12,7 @@ figures: [assets/post_assets/2014-3-30-unity-light-scattering/effect.gif]
 {% include asset_path %}
 
 ## 原理
+
 Volumetric Light Scattering 的原理可以参考《GPU Gems 3》[第13章](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch13.html)，书上有效果图：
 
 {% include img name='goodeffect.png'%}

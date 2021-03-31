@@ -14,6 +14,7 @@ figures: [assets/post_assets/2014-3-27-unity-depth-minimap/topview.png]
 刚接触Unity没多久，对Unity的ShaderLab一直很感兴趣，感觉它可以快速地实现各种各样的显示效果，很有意思。嘛，作为一个门都还没入的人，我就来搞一搞深度图和边缘检测吧。
 
 # 小地图设置
+
 因为我只是做了一个小雏形，所以我不打算详细地讲如何去在场景上画小地图，大致上说我做了以下一些事情：
 
 1. 获取场景的 bounding box，这个在设置相机的参数和位置时有用
