@@ -206,3 +206,9 @@
 .highlight {
   background-color: #f8f8f8;
 }
+.highlight pre {
+    word-wrap: normal;
+}
+.highlight pre code {
+    white-space: pre;
+}
