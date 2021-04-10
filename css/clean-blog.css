@@ -194,7 +194,7 @@ blockquote p {
   border: 1px solid #eee !important;
 }
 .table > tbody > tr > td > pre.lineno {
-    color: white;
+    color: #999988;
 }
 hr.small {
   max-width: 100px;
