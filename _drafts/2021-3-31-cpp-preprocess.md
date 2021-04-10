@@ -5,12 +5,12 @@ categories: c++
 catalog: true
 tags: [dev]
 description: |
-    todo
+    本文的目的是要讲清楚 C/C++ 的宏编程的规则和实现方法，让你不再惧怕看到代码里面的宏。
 figures: []
 ---
 {% include asset_path %}
 
-本文的目前是要讲清楚 C/C++ 的宏编程的规则和实现方法，让你不再惧怕看到代码里面的宏。我会首先说说 C++ 标准 14 里面提到的关于宏展开的规则，然后通过修改 Clang 的源码来观察宏展开，最后基于这些知识来聊聊宏编程的实现。
+本文的目的是要讲清楚 C/C++ 的宏编程的规则和实现方法，让你不再惧怕看到代码里面的宏。我会首先说说 C++ 标准 14 里面提到的关于宏展开的规则，然后通过修改 Clang 的源码来观察宏展开，最后基于这些知识来聊聊宏编程的实现。
 
 ## 引子
 
@@ -23,14 +23,10 @@ figures: []
 ``` cpp
 #define ITER(arg0, arg1) ITER(arg1, arg0) 
 
-ITER(1, 2)
+ITER(1, 2)          // -> ITER(2, 1)
 ```
 
-宏 `ITER` 交换了 `arg0`, `arg1` 的位置。宏展开之后，得到的是：
-
-``` cpp
-ITER(2, 1)
-```
+宏 `ITER` 交换了 `arg0`, `arg1` 的位置。宏展开之后，得到的是 `ITER(2, 1)`。
 
 可以看到，`arg0` `arg1` 的位置成功交换，在这里宏成功展开了一次，也只展开了一次，不再递归。换言之，宏的展开过程中，是不可自身递归，如果在递归的过程中发现相同的宏在之前的递归中已经展开过，则不再展开，这是宏展开的其中一条重要的规则。禁止递归的原因也很简单，就是为了避免无限递归。
 
@@ -39,26 +35,31 @@ ITER(2, 1)
 ``` cpp
 #define CONCAT(arg0, arg1) arg0 ## arg1
 
-CONCAT(Hello, World)
-
-CONCAT(Hello, CONCAT(World, !))
+CONCAT(Hello, World)                // -> HelloWorld
+CONCAT(Hello, CONCAT(World, !))     // ->　HelloCONCAT(World, !)
 ```
 
-宏 `CONCAT` 目的是拼接 `arg0` `arg1`。宏展开之后，得到的是：
-
-``` cpp
-HelloWorld
-
-HelloCONCAT(World, !)
-```
-
-`CONCAT(Hello, World)` 能够得到正确的结果 `HelloWorld`。但是 `CONCAT(Hello, CONCAT(World, !))` 却只展开了外层的宏，内层的 `CONCAT(World, !)` 并没有展开而是直接跟 `Hello` 拼接在了一起了，这跟我们预想的不一样，我们真正想要的结果是 `HelloWorld!`。这就是宏展开的另外一条重要的规则：跟在 `##` 操作符后面的宏参数，不会执行展开，而是会直接跟前面的内容先拼接在一起。
+宏 `CONCAT` 目的是拼接 `arg0` `arg1`。宏展开之后，`CONCAT(Hello, World)` 能够得到正确的结果 `HelloWorld`。但是 `CONCAT(Hello, CONCAT(World, !))` 却只展开了外层的宏，内层的 `CONCAT(World, !)` 并没有展开而是直接跟 `Hello` 拼接在了一起了，这跟我们预想的不一样，我们真正想要的结果是 `HelloWorld!`。这就是宏展开的另外一条重要的规则：跟在 `##` 操作符后面的宏参数，不会执行展开，而是会直接跟前面的内容先拼接在一起。
 
 通过上面两个例子可以看出来，宏展开的规则有一些是反直觉的，如果不清楚具体的规则，有可能写出来的宏跟我们想要的效果不一致。
 
 ## 宏展开规则
 
 通过引子的两个例子，我们了解到了宏展开是有一套标准的规则的，这套规则定义在 C/C++ 标准里面，内容不多，建议先仔细读几遍，我这里顺带给下标准 n4296 版本的链接，宏展开在 16.3 节：**[传送门](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4296.pdf)**。下面我挑出 n4296 版本中几条重要的规则，这些规则会决定如何正确编写宏（还是建议抽时间把标准里面宏展开细读下）。
+
+### 参数分隔
+
+宏的参数要求是用逗号分隔，而且参数的个数需要跟宏定义的个数一致，传递给宏的参数中，额外用括号包住的内容视为一个参数：
+
+``` cpp
+#define MACRO(arg1, arg2) arg1, arg2
+
+MACRO(a, b)             // -> a, b
+MACRO(a)                // 报错 "macro "MACRO" requires 2 arguments, but only 1 given"
+MACRO((a, b), c)        // -> (a, b), c
+```
+
+`MACRO((a, b), c)` 中 `(a, b)` 视为第一个参数。
 
 ### 宏参数展开
 
@@ -1126,6 +1127,18 @@ PP_TUPLE_REMOVE(0, (1, 2, 3))   // (2, 3)
 
 ```
 
+这里稍微解释一下插入元素的实现，其他删除元素等操作也是通过类似的原理来实现的。`PP_TUPLE_INSERT(i, elem, tuple)` 可以在 `tuple` 的位置 `i` 插入元素 `elem`，为了完成这个操作，先把位置小于 `i` 的元素都先用 `PP_TUPLE_PUSH_BACK` 放到一个新的 `tuple` 上（`ret`），然后在位置 `i` 放入元素 `elem`，之后再把原 `tuple` 位置大于等于 `i` 的元素放到 `ret` 后面，最后 `ret` 就得到我们想要的结果。
 
-https://godbolt.org/z/d6d9hfajG
+## 小结
 
+本文的目的是想要阐述清楚 C/C++ 宏编程的原理和基本实现，在记录我本人的一些理解和认识的同时，希望能够对其他人能带来一些解惑和启发。需要注意的是，尽管本文篇幅有点长，但还是有一些关于宏编程的技巧和用法是没有涉及到的，譬如 CHAOS_PP 提出的[基于延迟展开的递归调用方法](https://github.com/pfultz2/Cloak/wiki/C-Preprocessor-tricks,-tips,-and-idioms#deferred-expression)，BOOST_PP 里面的 `REPEAT` 相关宏等等，有兴趣的可以自行查阅资料。
+
+宏编程的调试是一个痛苦的过程，在这个过程中，除了用前面提到的我自己修改的 `clang` 版本以外，还可以把复杂的宏拆解，查看中间宏的展开结果，最后就是要脑补宏展开的过程了，熟悉宏展开之后调试的效率也会提升。
+
+本文中大部分的宏都是我自己在理解了实现的方法之后重新实现出来的，有不少地方也借鉴了 `Boost` 的实现，也有借鉴引用里面的文章，有任何错误之处，欢迎随时指正，也欢迎找我来讨论相关的问题。
+
+
+## 引用
+
+* [Boost.Preprocessor](https://www.boost.org/doc/libs/1_75_0/libs/preprocessor/doc/)
+* [C/C++ 宏编程的艺术](https://bot-man-jl.github.io/articles/?post=2020/Macro-Programming-Art)
