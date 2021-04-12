@@ -12,6 +12,8 @@ figures: []
 
 本文的目的是要讲清楚 C/C++ 的宏编程的规则和实现方法，让你不再惧怕看到代码里面的宏。我会首先说说 C++ 标准 14 里面提到的关于宏展开的规则，然后通过修改 Clang 的源码来观察宏展开，最后基于这些知识来聊聊宏编程的实现。
 
+本文的代码全部都在这里：[下载]({{PAGE_ASSET_PATH}}/example.cpp)，[在线演示](https://godbolt.org/z/coWvc5Pse)。
+
 ## 引子
 
 我们可以通过执行命令 `gcc -P -E a.cpp -o a.cpp.i` 来让编译器对文件 `a.cpp` 只执行预处理并保存结果到 `a.cpp.i` 中。
@@ -704,15 +706,17 @@ PP_IS_EMPTY2(PP_COMMA)      // -> 0
 判断变长参数是否为空的基础逻辑是 `PP_COMMA_ARGS __VA_ARGS__ ()` 返回一个逗号，也就是 `__VA_ARGS__` 为空，`PP_COMMA_ARGS` 和 `()` 拼接在一起求值，具体的写法就是 `PP_HAS_COMMA(PP_COMMA_ARGS __VA_ARGS__ ())`。
 
 但是会有例外的情况：
-  * `__VA_ARGS__` 本身有可能会带来逗号；
-  * `__VA_ARGS__ ()` 拼接在一起发生求值带来逗号；
-  * `PP_COMMA_ARGS __VA_ARGS__` 拼接在一起发生求值带来逗号；
+
+* `__VA_ARGS__` 本身有可能会带来逗号；
+* `__VA_ARGS__ ()` 拼接在一起发生求值带来逗号；
+* `PP_COMMA_ARGS __VA_ARGS__` 拼接在一起发生求值带来逗号；
 
 针对上面说到的三种例外情况，需要做排除，所以最后的写法等价于对以下 4 个条件执行与逻辑：
-  * `PP_NOT(PP_HAS_COMMA(__VA_ARGS__))` &&
-  * `PP_NOT(PP_HAS_COMMA(__VA_ARGS__()))` &&
-  * `PP_NOT(PP_HAS_COMMA(PP_COMMA_ARGS __VA_ARGS__))` &&
-  * `PP_HAS_COMMA(PP_COMMA_ARGS __VA_ARGS__ ())`
+
+* `PP_NOT(PP_HAS_COMMA(__VA_ARGS__))` &&
+* `PP_NOT(PP_HAS_COMMA(__VA_ARGS__()))` &&
+* `PP_NOT(PP_HAS_COMMA(PP_COMMA_ARGS __VA_ARGS__))` &&
+* `PP_HAS_COMMA(PP_COMMA_ARGS __VA_ARGS__ ())`
 
 #### `__VA_OPT__`
 
@@ -736,24 +740,30 @@ PP_ARGS_OPT((,), (), 1)             // -> ,
 有了 `PP_ARGS_OPT` 可以实现 `LOG3` 来模拟 `LOG2` 实现的功能：
 
 ``` cpp
-#define LOG3(format, ...) printf("log: " format PP_ARGS_OPT((,), (), __VA_ARGS__) __VA_ARGS__)
+#define LOG3(format, ...) \
+    printf("log: " format PP_ARGS_OPT((,), (), __VA_ARGS__) __VA_ARGS__)
 
 LOG3("Hello");                  // -> printf("log: " "Hello" );
 LOG3("Hello %s", "World");      // -> printf("log: " "Hello %s" , "World");
 ```
 
-### 求参数个数
+`data_tuple` 是 `(,)`，如果变长参数非空，则会返回 `data_tuple` 里面的所有元素，在这里就是逗号 `,`。
+
+#### 求参数个数
+
+获取变长参数的个数：
 
 ``` cpp
-#define PP_ARGS_SIZE_IMCOMPLETE(...) PP_ARGS_ELEM(8, __VA_ARGS__, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+#define PP_ARGS_SIZE_IMCOMPLETE(...) \
+    PP_ARGS_ELEM(8, __VA_ARGS__, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
-PP_ARGS_SIZE_IMCOMPLETE(a)             // 1
-PP_ARGS_SIZE_IMCOMPLETE(a, b)          // 2
-PP_ARGS_SIZE_IMCOMPLETE(PP_COMMA())    // 2
-PP_ARGS_SIZE_IMCOMPLETE()              // 1
+PP_ARGS_SIZE_IMCOMPLETE(a)             // -> 1
+PP_ARGS_SIZE_IMCOMPLETE(a, b)          // -> 2
+PP_ARGS_SIZE_IMCOMPLETE(PP_COMMA())    // -> 2
+PP_ARGS_SIZE_IMCOMPLETE()              // -> 1
 ```
 
-计算变长参数的个数，实现上其实就是通过数参数的位置来获得的，利用宏 `PP_ARGS_ELEM` 来获取第 8 个位置的参数，`__VA_ARGS__` 的参数个数会导致实际的第 8 个参数从 `1` 开始往前移动。；如果 `__VA_ARGS__` 只有一个参数，则第 8 个参数等于 `1`；同理如果 `__VA_ARGS__` 有两个参数，则第 8 个参数就变为 `2`，刚好等于变长参数的个数。
+计算变长参数的个数，是通过数参数的位置来获得的。`__VA_ARGS__` 会导致后续的参数全体往右移动，用宏 `PP_ARGS_ELEM` 来获取第 8 个位置的参数，如果 `__VA_ARGS__` 只有一个参数，则第 8 个参数等于 `1`；同理如果 `__VA_ARGS__` 有两个参数，则第 8 个参数就变为 `2`，刚好等于变长参数的个数。
 
 这里给的例子只最高支持个数 8 的变长参数，这是依赖于 `PP_ARGS_ELEM` 所能支持的最大长度。
 
@@ -763,16 +773,16 @@ PP_ARGS_SIZE_IMCOMPLETE()              // 1
 #define PP_COMMA_IF_ARGS(...) PP_ARGS_OPT((,), (), __VA_ARGS__)
 #define PP_ARGS_SIZE(...) PP_ARGS_ELEM(8, __VA_ARGS__ PP_COMMA_IF_ARGS(__VA_ARGS__) 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0)
 
-PP_ARGS_SIZE(a)             // 1
-PP_ARGS_SIZE(a, b)          // 2
-PP_ARGS_SIZE(PP_COMMA())    // 2
-PP_ARGS_SIZE()              // 0
-PP_ARGS_SIZE(,,,)           // 4
+PP_ARGS_SIZE(a)             // -> 1
+PP_ARGS_SIZE(a, b)          // -> 2
+PP_ARGS_SIZE(PP_COMMA())    // -> 2
+PP_ARGS_SIZE()              // -> 0
+PP_ARGS_SIZE(,,,)           // -> 4
 ```
 
 问题的关键就是逗号 `,`，在 `__VA_ARGS__` 为空的时候，把逗号隐去就能正确返回 `0`。
 
-### 遍历访问
+#### 遍历访问
 
 类似 C++ 的 `for_each`，我们可以实现宏的 `PP_FOR_EACH`：
 
@@ -785,27 +795,27 @@ PP_ARGS_SIZE(,,,)           // 4
 
 #define PP_FOR_EACH_2(index, macro, contex, arg, ...) \
     macro(index, contex, arg) \
-    PP_FOR_EACH_1(PP_INC(index), contex, __VA_ARGS__)
+    PP_FOR_EACH_1(PP_INC(index), macro, contex, __VA_ARGS__)
 
 #define PP_FOR_EACH_3(index, macro, contex, arg, ...) \
     macro(index, contex, arg) \
-    PP_FOR_EACH_2(PP_INC(index), contex, __VA_ARGS__)
+    PP_FOR_EACH_2(PP_INC(index), macro, contex, __VA_ARGS__)
 // ...
 #define PP_FOR_EACH_8(index, macro, contex, arg, ...) \
     macro(index, contex, arg) \
-    PP_FOR_EACH_7(PP_INC(index), contex, __VA_ARGS__)
+    PP_FOR_EACH_7(PP_INC(index), macro, contex, __VA_ARGS__)
 
-#define DECLARE_EACH(index, contex, arg)    PP_IF(index, PP_COMA, PP_EMPTY)() contex arg
+#define DECLARE_EACH(index, contex, arg)    PP_IF(index, PP_COMMA, PP_EMPTY)() contex arg
 
 PP_FOR_EACH(DECLARE_EACH, int, x, y, z);    // -> int x, y, z;
 PP_FOR_EACH(DECLARE_EACH, bool, a, b);      // -> bool a, b;
 ```
 
-`PP_FOR_EACH` 接收两个固定参数： `macro` 可以理解为遍历的时候调用的函数，`contex` 可以作为固定值参数传给 `macro`。`PP_FOR_EACH` 先通过 `PP_ARGS_SIZE` 获取变长参数的长度 `N`，再用 `PP_CONCAT` 拼接得到 `PP_FOR_EACH_N`，之后 `PP_FOR_EACH_N` 会迭代调用 `PP_FOR_EACH_N-1` 来实现跟变长参数个数相同的遍历次数。
+`PP_FOR_EACH` 接收两个固定参数： `macro` 可以理解为遍历的时候调用的宏，`contex` 可以作为固定值参数传给 `macro`。`PP_FOR_EACH` 先通过 `PP_ARGS_SIZE` 获取变长参数的长度 `N`，再用 `PP_CONCAT` 拼接得到 `PP_FOR_EACH_N`，之后 `PP_FOR_EACH_N` 会迭代调用 `PP_FOR_EACH_N-1` 来实现跟变长参数个数相同的遍历次数。
 
 例子里我们声明了 `DECLARE_EACH` 作为参数 `macro`，`DECLARE_EACH` 的作用就是返回 `contex arg`，如果 `contex` 是类型名字，`arg` 是变量名字，`DECLARE_EACH` 就可以用来声明变量。
 
-### 条件循环
+#### 条件循环
 
 有了 `FOR_EACH` 之后，我们还可以用类似的写法写出 `PP_WHILE`：
 
@@ -835,46 +845,48 @@ PP_FOR_EACH(DECLARE_EACH, bool, a, b);      // -> bool a, b;
 
 #define PP_EMPTY_EAT(...)
 
-
 #define SUM_OP(xy_tuple) SUM_OP_OP_IMPL xy_tuple
 #define SUM_OP_OP_IMPL(x, y) (PP_DEC(x), y + x)
 
 #define SUM_PRED(xy_tuple) SUM_PRED_IMPL xy_tuple
 #define SUM_PRED_IMPL(x, y) x
 
-#define SUM(max_num, origin_num) PP_IDENTITY(SUM_IMPL PP_WHILE(SUM_PRED, SUM_OP, (max_num, origin_num)))
+#define SUM(max_num, origin_num) \
+    PP_IDENTITY(SUM_IMPL PP_WHILE(SUM_PRED, SUM_OP, (max_num, origin_num)))
 #define SUM_IMPL(ignore, ret) ret
 
 PP_WHILE(SUM_PRED, SUM_OP, (2, a))      // -> (0, a + 2 + 1)
 SUM(2, a)                               // -> a + 2 + 1
 ```
 
-`PP_WHILE` 接受三个参数 `pred` 条件判断函数，`op` 操作函数，`val` 初试值；循环的过程中不断用 `pred(val)` 来做循环终止判断，把 `op(val)` 得到的值传给后续的宏，可以理解为执行以下代码：
+`PP_WHILE` 接受三个参数： `pred` 条件判断函数，`op` 操作函数，`val` 初始值；循环的过程中不断用 `pred(val)` 来做循环终止判断，把 `op(val)` 得到的值传给后续的宏，可以理解为执行以下代码：
 
 ``` cpp
-while pred(val)
-    val = op(val)
+while (pred(val)) {
+    val = op(val);
+}
 ```
 
 `PP_WHILE_N` 首先用 `pred(val)` 得到条件判断结果，把条件结果 `cond` 和其余参数再传给 `PP_WHILE_N_IMPL`。
-`PP_WHILE_N_IMPL` 可以分两部分看：后半部分 `(pred, op, PP_IF(cond, op, PP_EMPTY_EAT)(val))` 这个是作为前半部分返回的宏的参数，`PP_IF(cond, op, PP_EMPTY_EAT)(val)` 是如果 `cond` 为真，则求值 `op(val)` 否则求值 `PP_EMPTY_EAT(val)` 得到空。前半部分 `PP_IF(cond, PP_WHILE_N+1, val PP_EMPTY_EAT)`，如果 `cond` 为真，则返回 `PP_WHILE_N+1`，结合后半部分的参数继续执行循环；否则返回 `val PP_EMPTY_EAT`，此时 `val` 就是最终的计算结果，而 `PP_EMPTY_EAT` 会吞掉后半部分的结果。
+`PP_WHILE_N_IMPL` 可以分两部分看：后半部分 `(pred, op, PP_IF(cond, op, PP_EMPTY_EAT)(val))` 是作为前半部分的参数，`PP_IF(cond, op, PP_EMPTY_EAT)(val)` 是如果 `cond` 为真，则求值 `op(val)`， 否则求值 `PP_EMPTY_EAT(val)` 得到空。前半部分 `PP_IF(cond, PP_WHILE_N+1, val PP_EMPTY_EAT)`，如果 `cond` 为真，则返回 `PP_WHILE_N+1`，结合后半部分的参数继续执行循环；否则返回 `val PP_EMPTY_EAT`，此时 `val` 就是最终的计算结果，而 `PP_EMPTY_EAT` 会吞掉后半部分的结果。
 
 `SUM` 实现 `N + N-1 + ... + 1`。初始值 `(max_num, origin_num)`；`SUM_PRED` 取值的第一个元素 `x`，判断是否大于 0；`SUM_OP` 对 `x` 执行递减操作 `x = x - 1`，对 `y` 执行 `+ x` 操作 `y = y + x`。直接用 `SUM_PRED` 和 `SUM_OP` 传给 `PP_WHILE`，返回的结果是一个元组，我们真正想要的结果是元组的第 2 个元素，于是再用 `SUM` 取第 2 个元素的值。
 
-### 禁止递归
+#### 递归重入
 
-到目前为止，我们的遍历访问和循环重入都运作的很好，结果符合预期。还记得我们在讲宏展开规则的时候提到的禁止递归么，当我们想要执行两重循环的时候就触发到了禁止递归：
+到目前为止，我们的遍历访问和条件循环都运作的很好，结果符合预期。还记得我们在讲宏展开规则的时候提到的禁止递归重入么，当我们想要执行两重循环的时候就不幸遇到到了禁止递归重入：
 
 ``` cpp
 #define SUM_OP2(xy_tuple) SUM_OP_OP_IMPL2 xy_tuple
 #define SUM_OP_OP_IMPL2(x, y) (PP_DEC(x), y + SUM(x, 0))
 
-#define SUM2(max_num, origin_num) PP_IDENTITY(SUM_IMPL PP_WHILE(SUM_PRED, SUM_OP2, (max_num, origin_num)))
+#define SUM2(max_num, origin_num) \
+    PP_IDENTITY(SUM_IMPL PP_WHILE(SUM_PRED, SUM_OP2, (max_num, origin_num)))
 
 SUM2(1, a)      // -> a + SUM_IMPL PP_WHILE_1(SUM_PRED, SUM_OP, (1, a))
 ```
 
-`SUM2` 把参数 `op` 改为用 `SUM_OP2`，`SUM_OP2` 里面会调用到 `SUM`，而 `SUM` 展开还会是 `PP_WHILE_1`，相当于 `PP_WHILE_1` 递归调用到了自身，预处理器停止展开。
+`SUM2` 把参数 `op` 改用 `SUM_OP2`，`SUM_OP2` 里面会调用到 `SUM`，而 `SUM` 展开还会是 `PP_WHILE_1`，相当于 `PP_WHILE_1` 递归调用到了自身，预处理器停止展开。
 
 为了解决这个问题，我们可以用一种自动推导递归的方法（Automatic Recursion）：
 
@@ -885,7 +897,8 @@ SUM2(1, a)      // -> a + SUM_IMPL PP_WHILE_1(SUM_PRED, SUM_OP, (1, a))
 #define PP_AUTO_REC_12(check) PP_IF(check(1), 1, 2)
 #define PP_AUTO_REC_34(check) PP_IF(check(3), 3, 4)
 
-#define PP_WHILE_PRED(n) PP_CONCAT(PP_WHILE_CHECK_, PP_WHILE_ ## n(PP_WHILE_FALSE, PP_WHILE_FALSE, PP_WHILE_FALSE))
+#define PP_WHILE_PRED(n) \
+    PP_CONCAT(PP_WHILE_CHECK_, PP_WHILE_ ## n(PP_WHILE_FALSE, PP_WHILE_FALSE, PP_WHILE_FALSE))
 #define PP_WHILE_FALSE(...) 0
 
 #define PP_WHILE_CHECK_PP_WHILE_FALSE 1
@@ -897,34 +910,36 @@ SUM2(1, a)      // -> a + SUM_IMPL PP_WHILE_1(SUM_PRED, SUM_OP, (1, a))
 // ...
 #define PP_WHILE_CHECK_PP_WHILE_8(...) 0
 
-
 PP_AUTO_WHILE       // -> PP_WHILE_1
 
-#define SUM3(max_num, origin_num) PP_IDENTITY(SUM_IMPL PP_AUTO_WHILE(SUM_PRED, SUM_OP, (max_num, origin_num)))
+#define SUM3(max_num, origin_num) \
+    PP_IDENTITY(SUM_IMPL PP_AUTO_WHILE(SUM_PRED, SUM_OP, (max_num, origin_num)))
 
 #define SUM_OP4(xy_tuple) SUM_OP_OP_IMPL4 xy_tuple
 #define SUM_OP_OP_IMPL4(x, y) (PP_DEC(x), y + SUM3(x, 0))
 
-#define SUM4(max_num, origin_num) PP_IDENTITY(SUM_IMPL PP_AUTO_WHILE(SUM_PRED, SUM_OP4, (max_num, origin_num)))
+#define SUM4(max_num, origin_num) \
+    PP_IDENTITY(SUM_IMPL PP_AUTO_WHILE(SUM_PRED, SUM_OP4, (max_num, origin_num)))
 
 SUM4(2, a)          // -> a + 0 + 2 + 1 + 0 + 1
 ```
 
-`PP_AUTO_WHILE` 就是 `PP_WHILE` 的自动推导递归版本，核心的宏是 `PP_AUTO_REC(PP_WHILE_PRED)`。`PP_AUTO_REC(PP_WHILE_PRED)` 可以找出当前可用的 `PP_WHILE_N` 版本的数字 `N`，最后跟 `PP_WHILE_` 拼接起来得到可用的宏。
+`PP_AUTO_WHILE` 就是 `PP_WHILE` 的自动推导递归版本，核心的宏是 `PP_AUTO_REC(PP_WHILE_PRED)`，这个宏可以找出当前可用的 `PP_WHILE_N` 版本的数字 `N`。
 
-推导的原理很简单，就是搜索所有版本，找出能够正确展开的版本，返回该版本的数字，为了提升搜索的速度，一般的做法是使用二分查找，这就是 `PP_AUTO_REC` 在做的事情。`PP_AUTO_REC` 接受一个参数 `check`，`check` 负责检查版本可用性，这里给出的是支持搜索版本范围 `[1, 4]`。`PP_AUTO_REC` 会首先检查 `check(2)`，如果 `check(2)` 为真，则调用 `PP_AUTO_REC_12` 搜索范围 `[1, 2]`，否则用 `PP_AUTO_REC_34` 搜索 `[3, 4]`。`PP_AUTO_REC_12` 检查 `check(1)` 如果为真，说明版本 `1` 可用，否则用版本 `2`，`PP_AUTO_REC_12` 同理。
+推导的原理很简单，就是搜索所有版本，找出能够正确展开的版本，返回该版本的数字，为了提升搜索的速度，一般的做法是使用二分查找，这就是 `PP_AUTO_REC` 在做的事情。`PP_AUTO_REC` 接受一个参数 `check`，`check` 负责检查版本可用性，这里给出的是支持搜索版本范围 `[1, 4]`。`PP_AUTO_REC` 会首先检查 `check(2)`，如果 `check(2)` 为真，则调用 `PP_AUTO_REC_12` 搜索范围 `[1, 2]`，否则用 `PP_AUTO_REC_34` 搜索 `[3, 4]`。`PP_AUTO_REC_12` 检查 `check(1)` 如果为真，说明版本 `1` 可用，否则用版本 `2`，`PP_AUTO_REC_34` 同理。
 
 `check` 宏要怎么写才能知道版本是否可用呢？在这里，`PP_WHILE_PRED` 会展开成两部分的拼接，我们来看后部分 `PP_WHILE_ ## n(PP_WHILE_FALSE, PP_WHILE_FALSE, PP_WHILE_FALSE)`：如果 `PP_WHILE_ ## n` 可用，由于 `PP_WHILE_FALSE` 固定返回 `0`，这部分会展开得到 `val` 参数的值，也就是 `PP_WHILE_FALSE`；否则这部分宏会保持不变，依然是 `PP_WHILE_n(PP_WHILE_FALSE, PP_WHILE_FALSE, PP_WHILE_FALSE)`。
 
 把后部分的结果跟前部分 `PP_WHILE_CHECK_` 拼接起来，得到两种结果：`PP_WHILE_CHECK_PP_WHILE_FALSE` 或者 `PP_WHILE_CHECK_PP_WHILE_n(PP_WHILE_FALSE, PP_WHILE_FALSE, PP_WHILE_FALSE)`，于是我们让 `PP_WHILE_CHECK_PP_WHILE_FALSE` 返回 `1` 表明可用，`PP_WHILE_CHECK_PP_WHILE_n` 返回 `0` 表示不可用。至此，我们完成了自动推导递归的功能。
 
-### 算术比较
+#### 算术比较
 
-### 不相等
+不相等：
 
 ``` cpp
 #define PP_NOT_EQUAL(x, y) PP_NOT_EQUAL_IMPL(x, y)
-#define PP_NOT_EQUAL_IMPL(x, y) PP_CONCAT(PP_NOT_EQUAL_CHECK_, PP_NOT_EQUAL_ ## x(0, PP_NOT_EQUAL_1 ## y))
+#define PP_NOT_EQUAL_IMPL(x, y) \
+    PP_CONCAT(PP_NOT_EQUAL_CHECK_, PP_NOT_EQUAL_ ## x(0, PP_NOT_EQUAL_ ## y))
 
 #define PP_NOT_EQUAL_CHECK_PP_EQUAL_NIL 1
 #define PP_NOT_EQUAL_CHECK_PP_NOT_EQUAL_0(...) 0
@@ -943,52 +958,53 @@ SUM4(2, a)          // -> a + 0 + 2 + 1 + 0 + 1
 // ...
 #define PP_NOT_EQUAL_8(cond, y) PP_IF(cond, PP_EQUAL_NIL, y(1, PP_EQUAL_NIL))
 
-PP_NOT_EQUAL(1, 1)          // 0
-PP_NOT_EQUAL(3, 1)          // 1
+PP_NOT_EQUAL(1, 1)          // -> 0
+PP_NOT_EQUAL(3, 1)          // -> 1
 ```
 
-判断数值是否相等，用到了禁止递归的特性，把 `x` 和 `y` 递归拼接成 `PP_NOT_EQUAL_x PP_NOT_EQUAL_y` 宏，如果 `x == y`，则不会展开 `PP_NOT_EQUAL_y` 宏，跟 `PP_NOT_EQUAL_CHECK_` 拼接成 `PP_NOT_EQUAL_CHECK_PP_NOT_EQUAL_y` 返回 `0`；反之，两次都成功展开最后得到 `PP_EQUAL_NIL`，拼接得到 `PP_NOT_EQUAL_CHECK_PP_EQUAL_NIL` 返回 `1`。
+判断数值是否相等，用到了禁止递归重入的特性，把 `x` 和 `y` 递归拼接成 `PP_NOT_EQUAL_x PP_NOT_EQUAL_y` 宏，如果 `x == y`，则不会展开 `PP_NOT_EQUAL_y` 宏，跟 `PP_NOT_EQUAL_CHECK_` 拼接成 `PP_NOT_EQUAL_CHECK_PP_NOT_EQUAL_y` 返回 `0`；反之，两次都成功展开最后得到 `PP_EQUAL_NIL`，拼接得到 `PP_NOT_EQUAL_CHECK_PP_EQUAL_NIL` 返回 `1`。
 
-### 相等
+相等：
 
 ``` cpp
 #define PP_EQUAL(x, y) PP_NOT(PP_NOT_EQUAL(x, y))
 
-PP_EQUAL(1, 1)              // 1
-PP_EQUAL(1, 3)              // 0
+PP_EQUAL(1, 1)              // -> 1
+PP_EQUAL(1, 3)              // -> 0
 
 ```
 
-### 小于等于
+小于等于：
 
 ``` cpp
 #define PP_LESS_EQUAL(x, y) PP_NOT(PP_SUB(x, y))
 
-PP_LESS_EQUAL(2, 1)         // 0
-PP_LESS_EQUAL(1, 1)         // 1
-PP_LESS_EQUAL(1, 2)         // 1
+PP_LESS_EQUAL(2, 1)         // -> 0
+PP_LESS_EQUAL(1, 1)         // -> 1
+PP_LESS_EQUAL(1, 2)         // -> 1
 ```
 
-### 小于
+小于：
+
 ``` cpp
 #define PP_LESS(x, y) PP_AND(PP_LESS_EQUAL(x, y), PP_NOT_EQUAL(x, y))
 
-PP_LESS(2, 1)               // 0
-PP_LESS(1, 2)               // 1
-PP_LESS(2, 2)               // 0
+PP_LESS(2, 1)               // -> 0
+PP_LESS(1, 2)               // -> 1
+PP_LESS(2, 2)               // -> 0
 ```
-
 
 另外还有大于，大于等于等等算术比较，这里不再赘述。
 
-### 算术运算
+#### 算术运算
 
 利用 `PP_AUTO_WHILE` 我们可以实现基础的算术运算了，而且支持嵌套运算。
 
-#### 加法
+加法：
 
 ``` cpp
-#define PP_ADD(x, y) PP_IDENTITY(PP_ADD_IMPL PP_AUTO_WHILE(PP_ADD_PRED, PP_ADD_OP, (x, y)))
+#define PP_ADD(x, y) \
+    PP_IDENTITY(PP_ADD_IMPL PP_AUTO_WHILE(PP_ADD_PRED, PP_ADD_OP, (x, y)))
 #define PP_ADD_IMPL(x, y) x
 
 #define PP_ADD_PRED(xy_tuple) PP_ADD_PRED_IMPL xy_tuple
@@ -997,14 +1013,15 @@ PP_LESS(2, 2)               // 0
 #define PP_ADD_OP(xy_tuple) PP_ADD_OP_IMPL xy_tuple
 #define PP_ADD_OP_IMPL(x, y) (PP_INC(x), PP_DEC(y))
 
-PP_ADD(1, 2)                  // 3
-PP_ADD(1, PP_ADD(1, 2))       // 4
+PP_ADD(1, 2)                  // -> 3
+PP_ADD(1, PP_ADD(1, 2))       // -> 4
 ```
 
-### 减法
+减法：
 
 ``` cpp
-#define PP_SUB(x, y) PP_IDENTITY(PP_SUB_IMPL PP_AUTO_WHILE(PP_SUB_PRED, PP_SUB_OP, (x, y)))
+#define PP_SUB(x, y) \
+    PP_IDENTITY(PP_SUB_IMPL PP_AUTO_WHILE(PP_SUB_PRED, PP_SUB_OP, (x, y)))
 #define PP_SUB_IMPL(x, y) x
 
 #define PP_SUB_PRED(xy_tuple) PP_SUB_PRED_IMPL xy_tuple
@@ -1013,16 +1030,15 @@ PP_ADD(1, PP_ADD(1, 2))       // 4
 #define PP_SUB_OP(xy_tuple) PP_SUB_OP_IMPL xy_tuple
 #define PP_SUB_OP_IMPL(x, y) (PP_DEC(x), PP_DEC(y))
 
-PP_SUB(2, 1)                // 1
-PP_SUB(3, PP_ADD(2, 1))     // 0
+PP_SUB(2, 1)                // -> 1
+PP_SUB(3, PP_ADD(2, 1))     // -> 0
 ```
 
-### 
-
-### 乘法
+乘法：
 
 ``` cpp
-#define PP_MUL(x, y) IDENTITY(PP_MUL_IMPL PP_AUTO_WHILE(PP_MUL_PRED, PP_MUL_OP, (0, x, y)))
+#define PP_MUL(x, y) \
+    IDENTITY(PP_MUL_IMPL PP_AUTO_WHILE(PP_MUL_PRED, PP_MUL_OP, (0, x, y)))
 #define PP_MUL_IMPL(ret, x, y) ret
 
 #define PP_MUL_PRED(rxy_tuple) PP_MUL_PRED_IMPL rxy_tuple
@@ -1031,16 +1047,17 @@ PP_SUB(3, PP_ADD(2, 1))     // 0
 #define PP_MUL_OP(rxy_tuple) PP_MUL_OP_IMPL rxy_tuple
 #define PP_MUL_OP_IMPL(ret, x, y) (PP_ADD(ret, x), x, PP_DEC(y))
 
-PP_MUL(1, 1)                // 1
-PP_MUL(2, PP_ADD(0, 1))     // 2
+PP_MUL(1, 1)                // -> 1
+PP_MUL(2, PP_ADD(0, 1))     // -> 2
 ```
 
 乘法实现这里增加了一个参数 `ret`，初始值为 `0`，每次迭代会执行 `ret = ret + x`。
 
-### 除法
+除法：
 
 ``` cpp
-#define PP_DIV(x, y) IDENTITY(PP_DIV_IMPL PP_AUTO_WHILE(PP_DIV_PRED, PP_DIV_OP, (0, x, y)))
+#define PP_DIV(x, y) \
+    IDENTITY(PP_DIV_IMPL PP_AUTO_WHILE(PP_DIV_PRED, PP_DIV_OP, (0, x, y)))
 #define PP_DIV_IMPL(ret, x, y) ret
 
 #define PP_DIV_PRED(rxy_tuple) PP_DIV_PRED_IMPL rxy_tuple
@@ -1049,21 +1066,20 @@ PP_MUL(2, PP_ADD(0, 1))     // 2
 #define PP_DIV_OP(rxy_tuple) PP_DIV_OP_IMPL rxy_tuple
 #define PP_DIV_OP_IMPL(ret, x, y) (PP_INC(ret), PP_SUB(x, y), y)
 
-PP_DIV(1, 2)                // 0
-PP_DIV(2, 1)                // 2
-PP_DIV(2, PP_ADD(1, 1))     // 1
+PP_DIV(1, 2)                // -> 0
+PP_DIV(2, 1)                // -> 2
+PP_DIV(2, PP_ADD(1, 1))     // -> 1
 ```
 
 除法利用了 `PP_LESS_EQUAL`，只有 `y <= x` 的情况下才继续循环。
 
-### 数据结构
+#### 数据结构
 
 宏也可以有数据结构，其实我们在前面的也稍微用到了一种数据结构 `tuple`，`PP_REMOVE_PARENS` 就是可以去掉 `tuple` 的外层括号，返回里面的元素。我们这里就以 `tuple` 为例子讨论相关的实现，其他的数据结构 `list, array` 等有兴趣可以去看 `Boost` 的实现。
 
-`tuple` 定义为用括号包住的逗号分开的元素集合：`(a, b, c)`。~~需要注意的是空括号不属于 `tuple`，换言之，`tuple` 不能为空。~~
+`tuple` 定义为用括号包住的逗号分开的元素集合：`(a, b, c)`。
 
 ``` cpp
-// 移除外层括号
 #define PP_TUPLE_REMOVE_PARENS(tuple) PP_REMOVE_PARENS(tuple)
 
 // 获取指定下标的元素
@@ -1076,62 +1092,103 @@ PP_DIV(2, PP_ADD(1, 1))     // 1
 #define PP_TUPLE_SIZE(tuple) PP_ARGS_SIZE(PP_TUPLE_REMOVE_PARENS(tuple))
 
 // 添加元素
-#define PP_TUPLE_PUSH_BACK(elem, tuple) PP_TUPLE_PUSH_BACK_IMPL(PP_TUPLE_SIZE(tuple), elem, tuple)
-#define PP_TUPLE_PUSH_BACK_IMPL(size, elem, tuple) (PP_TUPLE_REMOVE_PARENS(tuple) PP_IF(size, PP_COMMA, PP_EMPTY)() elem)
+#define PP_TUPLE_PUSH_BACK(elem, tuple) \
+    PP_TUPLE_PUSH_BACK_IMPL(PP_TUPLE_SIZE(tuple), elem, tuple)
+#define PP_TUPLE_PUSH_BACK_IMPL(size, elem, tuple) \
+    (PP_TUPLE_REMOVE_PARENS(tuple) PP_IF(size, PP_COMMA, PP_EMPTY)() elem)
 
 // 插入元素
 #define PP_TUPLE_INSERT(i, elem, tuple) \
-    PP_TUPLE_ELEM(3, PP_AUTO_WHILE(PP_TUPLE_INSERT_PRED, PP_TUPLE_INSERT_OP, (0, i, elem, (), tuple)))
+    PP_TUPLE_ELEM( \
+        3, \
+        PP_AUTO_WHILE( \
+            PP_TUPLE_INSERT_PRED, \
+            PP_TUPLE_INSERT_OP, \
+            (0, i, elem, (), tuple) \
+        ) \
+    )
 #define PP_TUPLE_INSERT_PRED(args) PP_TUPLE_INSERT_PERD_IMPL args 
-#define PP_TUPLE_INSERT_PERD_IMPL(curi, i, elem, ret, tuple) PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), PP_INC(PP_TUPLE_SIZE(tuple)))
+#define PP_TUPLE_INSERT_PERD_IMPL(curi, i, elem, ret, tuple) \
+    PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), PP_INC(PP_TUPLE_SIZE(tuple)))
 #define PP_TUPLE_INSERT_OP(args) PP_TUPLE_INSERT_OP_IMPL args
-#define PP_TUPLE_INSERT_OP_IMPL(curi, i, elem, ret, tuple) 
+#define PP_TUPLE_INSERT_OP_IMPL(curi, i, elem, ret, tuple) \
     ( \
     PP_IF(PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), i), PP_INC(curi), curi), \
     i, elem, \
-    PP_TUPLE_PUSH_BACK(PP_IF(PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), i), PP_TUPLE_ELEM(curi, tuple), elem), ret), \
+    PP_TUPLE_PUSH_BACK(\
+        PP_IF( \
+            PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), i), \
+            PP_TUPLE_ELEM(curi, tuple), elem \
+        ), \
+        ret \
+    ), \
     tuple \
     )
 
 // 删除末尾元素
 #define PP_TUPLE_POP_BACK(tuple) \
-    PP_TUPLE_ELEM(1, PP_AUTO_WHILE(PP_TUPLE_POP_BACK_PRED, PP_TUPLE_POP_BACK_OP, (0, (), tuple)))
+    PP_TUPLE_ELEM( \
+        1, \
+        PP_AUTO_WHILE( \
+            PP_TUPLE_POP_BACK_PRED, \
+            PP_TUPLE_POP_BACK_OP, \
+            (0, (), tuple) \
+        ) \
+    )
 #define PP_TUPLE_POP_BACK_PRED(args) PP_TUPLE_POP_BACK_PRED_IMPL args
 #define PP_TUPLE_POP_BACK_PRED_IMPL(curi, ret, tuple) \
-    PP_IF(PP_TUPLE_SIZE(tuple), PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), PP_DEC(PP_TUPLE_SIZE(tuple))), 0)
+    PP_IF( \
+        PP_TUPLE_SIZE(tuple), \
+        PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), PP_DEC(PP_TUPLE_SIZE(tuple))), \
+        0 \
+    )
 #define PP_TUPLE_POP_BACK_OP(args) PP_TUPLE_POP_BACK_OP_IMPL args
 #define PP_TUPLE_POP_BACK_OP_IMPL(curi, ret, tuple) \
     (PP_INC(curi), PP_TUPLE_PUSH_BACK(PP_TUPLE_ELEM(curi, tuple), ret), tuple)
 
 // 删除元素
 #define PP_TUPLE_REMOVE(i, tuple) \
-    PP_TUPLE_ELEM(2, PP_AUTO_WHILE(PP_TUPLE_REMOVE_PRED, PP_TUPLE_REMOVE_OP, (0, i, (), tuple)))
+    PP_TUPLE_ELEM( \
+        2, \
+        PP_AUTO_WHILE( \
+            PP_TUPLE_REMOVE_PRED, \
+            PP_TUPLE_REMOVE_OP, \
+            (0, i, (), tuple) \
+        ) \
+    )
 #define PP_TUPLE_REMOVE_PRED(args) PP_TUPLE_REMOVE_PRED_IMPL args
 #define PP_TUPLE_REMOVE_PRED_IMPL(curi, i, ret, tuple) \
-    PP_IF(PP_TUPLE_SIZE(tuple), PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), PP_DEC(PP_TUPLE_SIZE(tuple))), 0)    
+    PP_IF( \
+        PP_TUPLE_SIZE(tuple), \
+        PP_NOT_EQUAL(PP_TUPLE_SIZE(ret), PP_DEC(PP_TUPLE_SIZE(tuple))), \
+        0 \
+    )    
 #define PP_TUPLE_REMOVE_OP(args) PP_TUPLE_REMOVE_OP_IMPL args
 #define PP_TUPLE_REMOVE_OP_IMPL(curi, i, ret, tuple) \
     ( \
     PP_INC(curi), \
     i, \
-    PP_IF(PP_NOT_EQUAL(curi, i), PP_TUPLE_PUSH_BACK(PP_TUPLE_ELEM(curi, tuple), ret), ret), \
+    PP_IF( \
+        PP_NOT_EQUAL(curi, i), \
+        PP_TUPLE_PUSH_BACK(PP_TUPLE_ELEM(curi, tuple), ret), \
+        ret \
+    ), \
     tuple \
     )
 
-PP_TUPLE_SIZE(())               // 0
+PP_TUPLE_SIZE(())               // -> 0
 
-PP_TUPLE_PUSH_BACK(2, (1))      // (1, 2)
-PP_TUPLE_PUSH_BACK(2, ())       // (2)
+PP_TUPLE_PUSH_BACK(2, (1))      // -> (1, 2)
+PP_TUPLE_PUSH_BACK(2, ())       // -> (2)
 
-PP_TUPLE_INSERT(1, 2, (1, 3))   // (1, 2, 3)
+PP_TUPLE_INSERT(1, 2, (1, 3))   // -> (1, 2, 3)
 
-PP_TUPLE_POP_BACK(())           // ()
-PP_TUPLE_POP_BACK((1))          // ()
-PP_TUPLE_POP_BACK((1, 2, 3))    // (1, 2)
+PP_TUPLE_POP_BACK(())           // -> ()
+PP_TUPLE_POP_BACK((1))          // -> ()
+PP_TUPLE_POP_BACK((1, 2, 3))    // -> (1, 2)
 
-PP_TUPLE_REMOVE(1, (1, 2, 3))   // (1, 3)
-PP_TUPLE_REMOVE(0, (1, 2, 3))   // (2, 3)
-
+PP_TUPLE_REMOVE(1, (1, 2, 3))   // -> (1, 3)
+PP_TUPLE_REMOVE(0, (1, 2, 3))   // -> (2, 3)
 ```
 
 这里稍微解释一下插入元素的实现，其他删除元素等操作也是通过类似的原理来实现的。`PP_TUPLE_INSERT(i, elem, tuple)` 可以在 `tuple` 的位置 `i` 插入元素 `elem`，为了完成这个操作，先把位置小于 `i` 的元素都先用 `PP_TUPLE_PUSH_BACK` 放到一个新的 `tuple` 上（`ret`），然后在位置 `i` 放入元素 `elem`，之后再把原 `tuple` 位置大于等于 `i` 的元素放到 `ret` 后面，最后 `ret` 就得到我们想要的结果。
@@ -1142,18 +1199,17 @@ PP_TUPLE_REMOVE(0, (1, 2, 3))   // (2, 3)
 
 宏编程的调试是一个痛苦的过程，我们可以：
 
-* 用 `-P -E` 选项输出预处理结果
-* 用前面提到的我自己修改的 `clang` 版本仔细研究展开过程
-* 把复杂的宏拆解，查看中间宏的展开结果
-* 屏蔽无关的头文件和宏
+* 用 `-P -E` 选项输出预处理结果；
+* 用前面提到的我自己修改的 `clang` 版本仔细研究展开过程；
+* 把复杂的宏拆解，查看中间宏的展开结果；
+* 屏蔽无关的头文件和宏；
 * 最后就是要脑补宏展开的过程了，熟悉宏展开之后调试的效率也会提升。
 
-本文中部分的宏是我自己在理解了实现的方法之后重新实现出来的，有部分宏借鉴了 `Boost` 的实现，也有借鉴引用里面的文章，有任何错误之处，欢迎随时指正，也欢迎找我来讨论相关的问题。
+本文中的宏是我自己在理解了原理之后重新实现出来的，有部分宏借鉴了 `Boost` 的实现和引用里面的文章，有任何错误之处，欢迎随时指正，也欢迎找我来讨论相关的问题。
 
+本文的代码全部都在这里：[下载]({{PAGE_ASSET_PATH}}/example.cpp)，[在线演示](https://godbolt.org/z/coWvc5Pse)。
 
 ## 引用
 
 * [Boost.Preprocessor](https://www.boost.org/doc/libs/1_75_0/libs/preprocessor/doc/)
 * [C/C++ 宏编程的艺术](https://bot-man-jl.github.io/articles/?post=2020/Macro-Programming-Art)
-
-https://godbolt.org/z/e5v8vb9oz
