@@ -5,7 +5,7 @@ categories: c++
 catalog: true
 tags: [dev]
 description: |
-    本文的目的是要讲清楚 C/C++ 的宏编程的规则和实现方法，让你不再惧怕看到代码里面的宏。
+    本文的目的是要讲清楚 C/C++ 宏编程的规则和实现方法，让你不再惧怕看到代码里面的宏。
 figures: []
 ---
 {% include asset_path %}
