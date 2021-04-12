@@ -12,7 +12,7 @@ figures: []
 
 本文的目的是要讲清楚 C/C++ 的宏编程的规则和实现方法，让你不再惧怕看到代码里面的宏。我会首先说说 C++ 标准 14 里面提到的关于宏展开的规则，然后通过修改 Clang 的源码来观察宏展开，最后基于这些知识来聊聊宏编程的实现。
 
-本文的代码全部都在这里：[下载]({{PAGE_ASSET_PATH}}/example.cpp)，[在线演示](https://godbolt.org/z/coWvc5Pse)。
+本文的代码全部都在这里：[下载]({{PAGE_ASSET_PATH}}/macros.cpp)，[在线演示](https://godbolt.org/z/coWvc5Pse)。
 
 ## 引子
 
@@ -1207,7 +1207,7 @@ PP_TUPLE_REMOVE(0, (1, 2, 3))   // -> (2, 3)
 
 本文中的宏是我自己在理解了原理之后重新实现出来的，有部分宏借鉴了 `Boost` 的实现和引用里面的文章，有任何错误之处，欢迎随时指正，也欢迎找我来讨论相关的问题。
 
-本文的代码全部都在这里：[下载]({{PAGE_ASSET_PATH}}/example.cpp)，[在线演示](https://godbolt.org/z/coWvc5Pse)。
+本文的代码全部都在这里：[下载]({{PAGE_ASSET_PATH}}/macors.cpp)，[在线演示](https://godbolt.org/z/coWvc5Pse)。
 
 ## 引用
 
