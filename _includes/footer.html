@@ -1,11 +1,13 @@
 <!-- Footer -->
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
 <footer>
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                 <ul class="list-inline text-center">
                     <!-- kill the Facebook and Weibo -->
-                    
+
                     <li>
                         <!--<a href="{{ "/feed.xml" | prepend: site.baseurl }}">-->
                         <a href="{{ site.feedurl }}">
@@ -15,7 +17,7 @@
                             </span>
                         </a>
                     </li>
-                    
+
                     <!--
                     {% if site.twitter_username %}
                     <li>
@@ -38,7 +40,7 @@
                         </a>
                     </li>
                     {% endif %}
-                    
+
                     {% if site.douban_username %}
                     <li>
                         <a href="http://www.douban.com/people/{{ site.douban_username }}">
@@ -49,7 +51,7 @@
                         </a>
                     </li>
                     {% endif %}
-                    
+
                     <!--
                     {% if site.facebook_username %}
                     <li>
@@ -90,6 +92,19 @@
                 </ul>
                 <p class="copyright text-muted">
                 &copy; {{ site.time | date: '%Y' }} {{ site.owner.name }} ❖ Powered by Jekyll.
+                </p>
+
+                <!-- 访问统计 -->
+                <p class="copyright text-muted">
+                <span id="busuanzi_container_site_uv">
+                    <span id="busuanzi_value_site_uv"></span> Visitors.
+                </span>
+                <span id="busuanzi_container_site_pv">
+                    <span id="busuanzi_value_site_pv"></span> Total Visits.
+                </span>
+                <span id="busuanzi_container_page_pv">
+                    <span id="busuanzi_value_page_pv"></span> Page Visits.
+                </span>
                 </p>
             </div>
         </div>
@@ -151,7 +166,7 @@
             l = $('<li class="'+n+'_nav"></li>').append(c);
             $(selector).append(l);
         });
-        return true;    
+        return true;
     }
 
     generateCatalog(".catalog-body");
